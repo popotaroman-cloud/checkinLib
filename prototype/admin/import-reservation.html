@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Import Reservation - Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>Admin Panel</h2>
+                <p>ระบบเช็คอินคอมพิวเตอร์</p>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item">
+                    <span class="icon">📊</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="monitor.html" class="nav-item">
+                    <span class="icon">🖥️</span>
+                    <span>Monitor</span>
+                </a>
+                <a href="manage-pc.html" class="nav-item">
+                    <span class="icon">💻</span>
+                    <span>Manage PC</span>
+                </a>
+                <a href="manage-software.html" class="nav-item">
+                    <span class="icon">📦</span>
+                    <span>Software</span>
+                </a>
+                <a href="import-reservation.html" class="nav-item active">
+                    <span class="icon">📥</span>
+                    <span>Import Reservation</span>
+                </a>
+                <a href="reports.html" class="nav-item">
+                    <span class="icon">📈</span>
+                    <span>Reports</span>
+                </a>
+            </nav>
+            <div style="padding: var(--spacing-xl); border-top: 1px solid var(--border);">
+                <a href="../user/idle.html?pc=PC-001" style="color: var(--text-secondary); font-size: 0.875rem;">
+                    ← กลับหน้าผู้ใช้
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="content-header">
+                <div>
+                    <h1>Import Reservation</h1>
+                    <div class="breadcrumb">
+                        <a href="dashboard.html">Admin</a>
+                        <span>/</span>
+                        <span>Import Reservation</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Instructions -->
+            <div class="card" style="margin-bottom: 2rem;">
+                <div class="card-header">
+                    <h3 class="card-title">วิธีการนำเข้าข้อมูล</h3>
+                </div>
+                <div class="card-body">
+                    <ol>
+                        <li>ดาวน์โหลด Template CSV</li>
+                        <li>กรอกข้อมูลการจองตามรูปแบบที่กำหนด</li>
+                        <li>อัพโหลดไฟล์ CSV ด้านล่าง</li>
+                        <li>ตรวจสอบผลการนำเข้า</li>
+                    </ol>
+                    <button class="btn btn-outline" onclick="downloadTemplate()">
+                        📥 Download CSV Template
+                    </button>
+                </div>
+            </div>
+
+            <!-- File Upload Area -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">อัพโหลดไฟล์ CSV</h3>
+                </div>
+                <div class="card-body">
+                    <div class="file-upload-area" id="uploadArea">
+                        <div class="file-upload-icon">📂</div>
+                        <h3>ลากไฟล์มาวางที่นี่</h3>
+                        <p>หรือ</p>
+                        <button type="button" class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                            เลือกไฟล์
+                        </button>
+                        <input type="file" id="fileInput" accept=".csv" style="display: none;">
+                        <p style="margin-top: 1rem; color: var(--text-secondary); font-size: 0.875rem;">
+                            รองรับไฟล์ CSV เท่านั้น
+                        </p>
+                    </div>
+
+                    <div id="fileInfo" class="hidden" style="margin-top: 1rem;">
+                        <div class="alert alert-info">
+                            <strong>ไฟล์ที่เลือก:</strong> <span id="fileName"></span>
+                        </div>
+                        <button class="btn btn-primary btn-block" onclick="processFile()">
+                            นำเข้าข้อมูล
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preview/Result Section -->
+            <div id="resultSection" class="card hidden" style="margin-top: 2rem;">
+                <div class="card-header">
+                    <h3 class="card-title">ผลการนำเข้าข้อมูล</h3>
+                </div>
+                <div class="card-body">
+                    <div id="resultContent"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/config.js"></script>
+    <script src="../js/utils.js"></script>
+    <script>
+        let selectedFile = null;
+
+        // File Input
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            handleFileSelect(e.target.files[0]);
+        });
+
+        // Drag & Drop
+        const uploadArea = document.getElementById('uploadArea');
+
+        uploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', function() {
+            this.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+
+            const file = e.dataTransfer.files[0];
+            if (file && file.name.endsWith('.csv')) {
+                handleFileSelect(file);
+            } else {
+                showAlert('กรุณาเลือกไฟล์ CSV เท่านั้น', 'danger');
+            }
+        });
+
+        function handleFileSelect(file) {
+            if (!file) return;
+
+            selectedFile = file;
+            document.getElementById('fileName').textContent = file.name;
+            document.getElementById('fileInfo').classList.remove('hidden');
+        }
+
+        function processFile() {
+            if (!selectedFile) {
+                showAlert('กรุณาเลือกไฟล์ก่อน', 'warning');
+                return;
+            }
+
+            showLoading('กำลังประมวลผลข้อมูล...');
+
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const csv = e.target.result;
+                const lines = csv.split('\n');
+
+                // Skip header
+                const dataLines = lines.slice(1).filter(line => line.trim());
+
+                setTimeout(() => {
+                    hideLoading();
+
+                    // Simulate processing
+                    const success = Math.floor(dataLines.length * 0.9);
+                    const failed = dataLines.length - success;
+
+                    const resultHTML = `
+                        <div class="stats-grid" style="margin-bottom: 1rem;">
+                            <div class="stat-card">
+                                <div class="stat-card-value text-success">${success}</div>
+                                <div class="stat-card-label">นำเข้าสำเร็จ</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-card-value text-danger">${failed}</div>
+                                <div class="stat-card-label">ล้มเหลว</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-card-value">${dataLines.length}</div>
+                                <div class="stat-card-label">ทั้งหมด</div>
+                            </div>
+                        </div>
+                        ${failed > 0 ? `
+                            <div class="alert alert-warning">
+                                <strong>หมายเหตุ:</strong> พบข้อมูลที่ไม่ถูกต้อง ${failed} รายการ
+                            </div>
+                        ` : `
+                            <div class="alert alert-success">
+                                <strong>สำเร็จ!</strong> นำเข้าข้อมูลทั้งหมดเรียบร้อยแล้ว
+                            </div>
+                        `}
+                    `;
+
+                    document.getElementById('resultContent').innerHTML = resultHTML;
+                    document.getElementById('resultSection').classList.remove('hidden');
+
+                    showAlert('ประมวลผลเสร็จสิ้น', 'success');
+                }, 2000);
+            };
+
+            reader.readAsText(selectedFile);
+        }
+
+        function downloadTemplate() {
+            const template = `student_id,pc_id,date,time,duration,purpose
+6501001,PC-001,2024-11-28,14:00,2,ทำโปรเจกต์
+6501002,PC-002,2024-11-28,15:00,1,ทำรายงาน`;
+
+            const blob = new Blob([template], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'reservation_template.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>กำลังใช้งาน - ระบบเช็คอินคอมพิวเตอร์</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/user.css">
+</head>
+<body>
+    <div class="user-container">
+        <div class="user-card fade-in">
+            <div class="user-header">
+                <div class="pc-badge" id="pcBadge">PC-001</div>
+                <h1>กำลังใช้งาน</h1>
+            </div>
+
+            <div class="session-container">
+                <!-- Timer -->
+                <div class="timer-display" id="timer">00:00:00</div>
+
+                <!-- User Info -->
+                <div class="session-info">
+                    <h3 id="userName">ชื่อผู้ใช้</h3>
+                    <p id="userFaculty">คณะ/หน่วยงาน</p>
+                    <p class="session-duration" id="sessionStart"></p>
+                </div>
+
+                <!-- Instructions -->
+                <div style="margin: 2rem 0;">
+                    <p style="color: var(--text-secondary);">
+                        เมื่อใช้งานเสร็จแล้ว กรุณากดปุ่มด้านล่างเพื่อเช็คเอาท์
+                    </p>
+                </div>
+
+                <!-- Checkout Button -->
+                <button class="btn btn-danger btn-lg btn-block" id="checkoutBtn">
+                    เลิกใช้งาน (Check-out)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/config.js"></script>
+    <script src="../js/utils.js"></script>
+    <script>
+        // Get parameters
+        const params = getURLParams();
+        const pcId = params.pc || 'PC-001';
+        const userId = params.user;
+
+        document.getElementById('pcBadge').textContent = pcId;
+
+        // Get session from localStorage
+        const session = getCurrentSession();
+
+        if (!session || session.pcId !== pcId || session.userId !== userId) {
+            // Invalid session - redirect to idle
+            alert('Session ไม่ถูกต้อง');
+            navigateTo('idle.html', { pc: pcId });
+        } else {
+            // Display user info
+            document.getElementById('userName').textContent = session.userName;
+            document.getElementById('userFaculty').textContent = session.faculty;
+            document.getElementById('sessionStart').textContent = 'เริ่มใช้งาน: ' + formatTime(session.startTime);
+
+            // Timer
+            let startTime = new Date(session.startTime);
+            let timerInterval;
+
+            function updateTimer() {
+                const now = new Date();
+                const diff = now - startTime;
+
+                const hours = Math.floor(diff / 3600000);
+                const minutes = Math.floor((diff % 3600000) / 60000);
+                const seconds = Math.floor((diff % 60000) / 1000);
+
+                document.getElementById('timer').textContent =
+                    `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            }
+
+            // Update timer every second
+            updateTimer();
+            timerInterval = setInterval(updateTimer, 1000);
+
+            // Checkout button
+            document.getElementById('checkoutBtn').addEventListener('click', function() {
+                clearInterval(timerInterval);
+
+                const duration = calculateDuration(session.startTime);
+
+                // Navigate to feedback page
+                navigateTo('feedback.html', {
+                    pc: pcId,
+                    user: userId,
+                    duration: duration
+                });
+            });
+
+            // Prevent accidental page close
+            window.addEventListener('beforeunload', function(e) {
+                e.preventDefault();
+                e.returnValue = '';
+                return '';
+            });
+        }
+    </script>
+</body>
+</html>

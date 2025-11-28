@@ -1,0 +1,60 @@
+@startuml
+scale 600 width
+hide empty description
+
+state "<b>Idle State</b>\n(หน้าจอว่าง/พร้อมใช้งาน)" as Idle {
+  [*] --> ShowQR
+  state "แสดง QR Code\nและสถานะ 'ว่าง'" as ShowQR
+}
+
+state "<b>Authentication State</b>\n(ระบุตัวตน)" as Auth {
+  state "เลือกประเภทผู้ใช้\n(Internal / External)" as SelectType
+
+  state "กรอกรหัสนักศึกษา/บุคลากร\n(Internal Login)" as InternalLogin
+  state "กรอกข้อมูลบุคคลภายนอก\n(External Register)" as ExternalLogin
+
+  state "ตรวจสอบข้อมูล (Validating)" as Validating
+}
+
+state "<b>Active Session State</b>\n(กำลังใช้งาน)" as Active {
+  state "หน้าจอแสดงเวลาที่ใช้ไป\n(Running Session)" as Running
+}
+
+state "<b>Checkout & Feedback</b>\n(ลงชื่อออก)" as Checkout {
+  state "แบบสอบถามความพึงพอใจ\n(Feedback Form)" as Feedback
+  state "บันทึกข้อมูล (Saving Data)" as Saving
+}
+
+state "<b>Maintenance State</b>\n(ปิดปรับปรุง)" as Maintenance
+
+' --- Transitions ---
+
+' เริ่มต้น
+[*] --> Idle
+
+' การเช็คอิน
+ShowQR --> SelectType : User สแกน QR Code
+SelectType --> InternalLogin : เลือก "นศ./บุคลากร"
+SelectType --> ExternalLogin : เลือก "บุคคลภายนอก"
+
+' Flow ภายใน
+InternalLogin --> Validating : กด "ยืนยัน"
+ExternalLogin --> Validating : กด "ลงทะเบียน"
+
+' การตรวจสอบ (Validation Logic)
+Validating --> Running : ข้อมูลถูกต้อง /\nมีสิทธิ์จอง
+Validating --> SelectType : ข้อมูลไม่ถูกต้อง /\nแสดง Error
+
+' ระหว่างใช้งาน
+Running --> Feedback : User สแกน QR / กด Logout
+Running --> Idle : Admin สั่ง Force Logout\n(ข้าม Feedback)
+
+' การให้คะแนน
+Feedback --> Saving : กด "ส่งข้อมูล"
+Saving --> Idle : บันทึกเสร็จสมบูรณ์\n(Reset เครื่อง)
+
+' Admin Control (Global Transitions)
+Idle --> Maintenance : Admin สั่ง "ปิดใช้งาน"
+Maintenance --> Idle : Admin สั่ง "เปิดใช้งาน"
+
+@enduml

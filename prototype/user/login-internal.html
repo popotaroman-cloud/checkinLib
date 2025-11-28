@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เข้าสู่ระบบ - นักศึกษา/บุคลากร</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/user.css">
+</head>
+<body>
+    <div class="user-container">
+        <div class="user-card fade-in">
+            <div class="user-header">
+                <div class="pc-badge" id="pcBadge">PC-001</div>
+                <h1>เข้าสู่ระบบ</h1>
+                <p>กรอกรหัสนักศึกษาหรือรหัสบุคลากร</p>
+            </div>
+
+            <form class="login-form" id="loginForm">
+                <div class="form-group">
+                    <label for="studentId">รหัสนักศึกษา / บุคลากร</label>
+                    <input
+                        type="text"
+                        id="studentId"
+                        class="student-id-input"
+                        placeholder="6501001"
+                        required
+                        autofocus
+                        maxlength="10"
+                    >
+                    <div class="error-message hidden" id="errorMessage"></div>
+                </div>
+
+                <!-- User Info (Hidden initially) -->
+                <div class="user-info-card hidden" id="userInfo">
+                    <h4>ข้อมูลผู้ใช้</h4>
+                    <div class="user-info-row">
+                        <span class="user-info-label">ชื่อ-นามสกุล:</span>
+                        <span class="user-info-value" id="userName"></span>
+                    </div>
+                    <div class="user-info-row">
+                        <span class="user-info-label">คณะ:</span>
+                        <span class="user-info-value" id="userFaculty"></span>
+                    </div>
+                    <div class="user-info-row">
+                        <span class="user-info-label">ชั้นปี:</span>
+                        <span class="user-info-value" id="userYear"></span>
+                    </div>
+                    <div class="user-info-row">
+                        <span class="user-info-label">สาขา:</span>
+                        <span class="user-info-value" id="userProgram"></span>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button type="button" class="btn btn-outline" id="backBtn">
+                        ← กลับ
+                    </button>
+                    <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+                        ยืนยัน
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../js/config.js"></script>
+    <script src="../js/utils.js"></script>
+    <script>
+        // Get PC ID from URL
+        const params = getURLParams();
+        const pcId = params.pc || 'PC-001';
+        document.getElementById('pcBadge').textContent = pcId;
+
+        let studentData = null;
+
+        // Student ID input - auto validate
+        const studentIdInput = document.getElementById('studentId');
+        const userInfoCard = document.getElementById('userInfo');
+        const errorMessage = document.getElementById('errorMessage');
+
+        studentIdInput.addEventListener('blur', async function() {
+            const studentId = this.value.trim();
+
+            if (studentId.length === 0) return;
+
+            // Show loading
+            showLoading('กำลังตรวจสอบข้อมูล...');
+
+            try {
+                // Simulate API call
+                studentData = await findStudentById(studentId);
+
+                // Display user info
+                document.getElementById('userName').textContent = `${studentData.firstName} ${studentData.lastName}`;
+                document.getElementById('userFaculty').textContent = studentData.faculty;
+                document.getElementById('userYear').textContent = `ปี ${studentData.year}`;
+                document.getElementById('userProgram').textContent = studentData.program;
+
+                userInfoCard.classList.remove('hidden');
+                errorMessage.classList.add('hidden');
+                studentIdInput.classList.remove('error');
+
+            } catch (error) {
+                studentData = null;
+                userInfoCard.classList.add('hidden');
+                errorMessage.textContent = error.error || 'ไม่พบข้อมูลในระบบ';
+                errorMessage.classList.remove('hidden');
+                studentIdInput.classList.add('error');
+            } finally {
+                hideLoading();
+            }
+        });
+
+        // Form submit
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            if (!studentData) {
+                showAlert('กรุณากรอกรหัสนักศึกษา/บุคลากรที่ถูกต้อง', 'danger');
+                return;
+            }
+
+            // Check PC availability
+            if (!isPCAvailable(pcId)) {
+                showAlert('เครื่องนี้ไม่พร้อมใช้งาน', 'danger');
+                return;
+            }
+
+            // Check reservation (optional)
+            const reservation = checkReservation(studentData.id, pcId);
+
+            // Start session
+            const session = startSession(pcId, studentData.id, 'internal', {
+                firstName: studentData.firstName,
+                lastName: studentData.lastName,
+                faculty: studentData.faculty
+            });
+
+            // Navigate to active session
+            navigateTo('active-session.html', {
+                pc: pcId,
+                user: studentData.id
+            });
+        });
+
+        // Back button
+        document.getElementById('backBtn').addEventListener('click', function() {
+            navigateTo('select-type.html', { pc: pcId });
+        });
+    </script>
+</body>
+</html>

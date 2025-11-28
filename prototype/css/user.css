@@ -1,0 +1,470 @@
+/* ========================================
+   User Pages Styles (Mobile-First)
+   ระบบเช็คอินคอมพิวเตอร์ - ส่วนผู้ใช้
+   ======================================== */
+
+/* User Page Container */
+.user-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: var(--spacing-lg);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.user-card {
+  background-color: var(--bg-primary);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-2xl);
+  box-shadow: var(--shadow-xl);
+  width: 100%;
+  max-width: 480px;
+  text-align: center;
+}
+
+/* ========================================
+   Idle State (QR Code Screen)
+   ======================================== */
+.qr-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xl);
+}
+
+.qr-code-box {
+  width: 250px;
+  height: 250px;
+  background-color: var(--bg-secondary);
+  border: 4px solid var(--border);
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  color: var(--text-secondary);
+}
+
+.pc-number {
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin: var(--spacing-lg) 0;
+}
+
+.status-badge-large {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-xl);
+  font-size: 1.25rem;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  background-color: rgba(16, 185, 129, 0.1);
+  color: var(--status-available);
+}
+
+.status-badge-large .status-dot {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* ========================================
+   Select Type (Authentication State)
+   ======================================== */
+.type-selector {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  margin-top: var(--spacing-xl);
+}
+
+.type-card {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  color: white;
+  padding: var(--spacing-2xl);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  border: none;
+  text-align: center;
+  box-shadow: var(--shadow-md);
+}
+
+.type-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl);
+}
+
+.type-card:active {
+  transform: translateY(-2px);
+}
+
+.type-card .icon {
+  font-size: 3rem;
+  margin-bottom: var(--spacing-md);
+}
+
+.type-card h3 {
+  font-size: 1.5rem;
+  margin-bottom: var(--spacing-sm);
+}
+
+.type-card p {
+  font-size: 1rem;
+  opacity: 0.9;
+  margin: 0;
+}
+
+.type-card.secondary {
+  background: linear-gradient(135deg, var(--secondary) 0%, #7c3aed 100%);
+}
+
+/* ========================================
+   Login Forms (Internal & External)
+   ======================================== */
+.login-form {
+  text-align: left;
+  margin-top: var(--spacing-xl);
+}
+
+.login-form .form-group {
+  text-align: left;
+}
+
+.student-id-input {
+  font-size: 1.25rem;
+  text-align: center;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.user-info-card {
+  background-color: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  margin-top: var(--spacing-lg);
+  text-align: left;
+}
+
+.user-info-card h4 {
+  color: var(--primary);
+  margin-bottom: var(--spacing-md);
+  font-size: 1.125rem;
+}
+
+.user-info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--spacing-sm) 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.user-info-row:last-child {
+  border-bottom: none;
+}
+
+.user-info-label {
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.user-info-value {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* ========================================
+   Active Session State
+   ======================================== */
+.session-container {
+  text-align: center;
+}
+
+.timer-display {
+  font-size: 4rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin: var(--spacing-xl) 0;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.1em;
+}
+
+.session-info {
+  background-color: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-xl);
+}
+
+.session-info h3 {
+  font-size: 1.5rem;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.session-info p {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  margin: var(--spacing-xs) 0;
+}
+
+.session-duration {
+  font-size: 0.875rem;
+  color: var(--text-light);
+  margin-top: var(--spacing-md);
+}
+
+/* ========================================
+   Feedback State
+   ======================================== */
+.feedback-container {
+  text-align: center;
+}
+
+.session-summary {
+  background-color: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  margin-bottom: var(--spacing-xl);
+}
+
+.session-summary h3 {
+  color: var(--primary);
+  margin-bottom: var(--spacing-md);
+}
+
+.duration-display {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: var(--spacing-md) 0;
+}
+
+.duration-label {
+  font-size: 1rem;
+  color: var(--text-secondary);
+}
+
+/* Star Rating */
+.star-rating {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  margin: var(--spacing-xl) 0;
+}
+
+.star {
+  font-size: 3rem;
+  color: var(--border);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  user-select: none;
+}
+
+.star:hover,
+.star.active {
+  color: #fbbf24;
+  transform: scale(1.1);
+}
+
+.star.active {
+  animation: starPulse 0.3s ease-out;
+}
+
+@keyframes starPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1.1); }
+}
+
+.rating-label {
+  text-align: center;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-md);
+}
+
+.feedback-form {
+  text-align: left;
+  margin-top: var(--spacing-xl);
+}
+
+/* ========================================
+   Buttons (User-specific)
+   ======================================== */
+.btn-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-xl);
+}
+
+.btn-cancel {
+  background-color: transparent;
+  color: var(--text-secondary);
+  border: none;
+  padding: var(--spacing-md);
+}
+
+.btn-cancel:hover {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+/* ========================================
+   Loading State
+   ======================================== */
+.loading-state {
+  text-align: center;
+  padding: var(--spacing-2xl);
+}
+
+.loading-state .loading {
+  margin: 0 auto var(--spacing-lg);
+}
+
+/* ========================================
+   Error State
+   ======================================== */
+.error-state {
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 2px solid var(--status-occupied);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  margin: var(--spacing-lg) 0;
+  text-align: center;
+}
+
+.error-state .error-icon {
+  font-size: 3rem;
+  color: var(--status-occupied);
+  margin-bottom: var(--spacing-md);
+}
+
+.error-state p {
+  color: #991b1b;
+  font-weight: 500;
+  margin: 0;
+}
+
+/* ========================================
+   Page Header
+   ======================================== */
+.user-header {
+  margin-bottom: var(--spacing-2xl);
+}
+
+.user-header h1 {
+  font-size: 2rem;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.user-header p {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  margin: 0;
+}
+
+.pc-badge {
+  display: inline-block;
+  background-color: var(--primary);
+  color: white;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--radius-full);
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-top: var(--spacing-sm);
+}
+
+/* ========================================
+   Responsive Design
+   ======================================== */
+@media (max-width: 480px) {
+  .user-card {
+    padding: var(--spacing-lg);
+  }
+
+  .qr-code-box {
+    width: 200px;
+    height: 200px;
+    font-size: 2.5rem;
+  }
+
+  .pc-number {
+    font-size: 2.5rem;
+  }
+
+  .timer-display {
+    font-size: 3rem;
+  }
+
+  .duration-display {
+    font-size: 2rem;
+  }
+
+  .star {
+    font-size: 2.5rem;
+  }
+
+  .type-card .icon {
+    font-size: 2.5rem;
+  }
+
+  .user-header h1 {
+    font-size: 1.75rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .user-card {
+    padding: var(--spacing-2xl) 3rem;
+  }
+
+  .btn-group {
+    flex-direction: row;
+    justify-content: center;
+  }
+
+  .btn-group .btn {
+    min-width: 150px;
+  }
+}
+
+/* ========================================
+   Animations
+   ======================================== */
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOut {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

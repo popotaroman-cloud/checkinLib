@@ -1,0 +1,27 @@
+@startuml
+|User (ผู้ใช้บริการ)|
+start
+:กดปุ่ม "เลิกใช้งาน" หรือ\nสแกน QR Code ซ้ำ;
+
+|System (ระบบเช็คอิน)|
+:หยุดตัวนับเวลา;
+:แสดงแบบสอบถามความพึงพอใจ (Popup);
+
+|User (ผู้ใช้บริการ)|
+:ให้คะแนน (Rating)\nและข้อเสนอแนะ;
+:กดยืนยัน (Submit);
+
+|System (ระบบเช็คอิน)|
+:รับค่าคะแนนและ User ID;
+
+fork
+    :บันทึกเวลาสิ้นสุด (End Time);
+    :คำนวณระยะเวลา (End - Start);
+    :บันทึก Log การใช้งาน\n(User ID + Duration + Feedback);
+fork again
+    :เปลี่ยนสถานะเครื่องเป็น "ว่าง (Available)";
+    :รีเซ็ตหน้าจอเป็น QR Code (Idle State);
+end fork
+
+stop
+@enduml

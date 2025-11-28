@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Software - Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>Admin Panel</h2>
+                <p>ระบบเช็คอินคอมพิวเตอร์</p>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item">
+                    <span class="icon">📊</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="monitor.html" class="nav-item">
+                    <span class="icon">🖥️</span>
+                    <span>Monitor</span>
+                </a>
+                <a href="manage-pc.html" class="nav-item">
+                    <span class="icon">💻</span>
+                    <span>Manage PC</span>
+                </a>
+                <a href="manage-software.html" class="nav-item active">
+                    <span class="icon">📦</span>
+                    <span>Software</span>
+                </a>
+                <a href="import-reservation.html" class="nav-item">
+                    <span class="icon">📥</span>
+                    <span>Import Reservation</span>
+                </a>
+                <a href="reports.html" class="nav-item">
+                    <span class="icon">📈</span>
+                    <span>Reports</span>
+                </a>
+            </nav>
+            <div style="padding: var(--spacing-xl); border-top: 1px solid var(--border);">
+                <a href="../user/idle.html?pc=PC-001" style="color: var(--text-secondary); font-size: 0.875rem;">
+                    ← กลับหน้าผู้ใช้
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="content-header">
+                <div>
+                    <h1>Manage Software</h1>
+                    <div class="breadcrumb">
+                        <a href="dashboard.html">Admin</a>
+                        <span>/</span>
+                        <span>Software</span>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="showAddSoftwareModal()">
+                    + เพิ่มซอฟต์แวร์
+                </button>
+            </div>
+
+            <!-- Software Table -->
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Software Name</th>
+                            <th>Version</th>
+                            <th>Category</th>
+                            <th>Installed On</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="softwareTableBody">
+                        <!-- Rows will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Software Modal -->
+    <div class="modal" id="softwareModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>เพิ่มซอฟต์แวร์</h2>
+                <button class="modal-close" onclick="closeSoftwareModal()">×</button>
+            </div>
+            <form id="softwareForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="softwareName">Software Name *</label>
+                        <input type="text" id="softwareName" required placeholder="Microsoft Office">
+                    </div>
+                    <div class="form-group">
+                        <label for="version">Version</label>
+                        <input type="text" id="version" placeholder="2021">
+                    </div>
+                    <div class="form-group">
+                        <label for="category">Category</label>
+                        <input type="text" id="category" placeholder="Office Suite">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" onclick="closeSoftwareModal()">ยกเลิก</button>
+                    <button type="submit" class="btn btn-primary">บันทึก</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../js/config.js"></script>
+    <script src="../js/utils.js"></script>
+    <script>
+        // Load Software Table
+        function loadSoftwareTable() {
+            const software = MOCK_DATA.software;
+            const tbody = document.getElementById('softwareTableBody');
+
+            tbody.innerHTML = software.map(sw => `
+                <tr>
+                    <td><strong>${sw.name}</strong></td>
+                    <td>${sw.version}</td>
+                    <td>${sw.category}</td>
+                    <td>
+                        <span class="badge badge-primary">
+                            ${sw.installedOn.length} เครื่อง
+                        </span>
+                    </td>
+                    <td class="table-actions">
+                        <button class="btn btn-sm btn-primary" onclick="viewDetails(${sw.id})">
+                            View PCs
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteSoftware(${sw.id})">
+                            ลบ
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function showAddSoftwareModal() {
+            document.getElementById('softwareForm').reset();
+            document.getElementById('softwareModal').classList.add('active');
+        }
+
+        function closeSoftwareModal() {
+            document.getElementById('softwareModal').classList.remove('active');
+        }
+
+        function viewDetails(swId) {
+            const software = MOCK_DATA.software.find(s => s.id === swId);
+            alert(`${software.name}\n\nติดตั้งใน:\n${software.installedOn.join(', ')}`);
+        }
+
+        function deleteSoftware(swId) {
+            const software = MOCK_DATA.software.find(s => s.id === swId);
+            if (confirm(`ต้องการลบ ${software.name} หรือไม่?`)) {
+                showAlert('ลบสำเร็จ', 'success');
+            }
+        }
+
+        document.getElementById('softwareForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            showLoading('กำลังบันทึก...');
+            setTimeout(() => {
+                hideLoading();
+                showAlert('เพิ่มซอฟต์แวร์สำเร็จ', 'success');
+                closeSoftwareModal();
+            }, 1000);
+        });
+
+        // Initialize
+        loadSoftwareTable();
+    </script>
+</body>
+</html>

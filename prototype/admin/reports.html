@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js" charset="utf-8"></script>
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>Admin Panel</h2>
+                <p>ระบบเช็คอินคอมพิวเตอร์</p>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item">
+                    <span class="icon">📊</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="monitor.html" class="nav-item">
+                    <span class="icon">🖥️</span>
+                    <span>Monitor</span>
+                </a>
+                <a href="manage-pc.html" class="nav-item">
+                    <span class="icon">💻</span>
+                    <span>Manage PC</span>
+                </a>
+                <a href="manage-software.html" class="nav-item">
+                    <span class="icon">📦</span>
+                    <span>Software</span>
+                </a>
+                <a href="import-reservation.html" class="nav-item">
+                    <span class="icon">📥</span>
+                    <span>Import Reservation</span>
+                </a>
+                <a href="reports.html" class="nav-item active">
+                    <span class="icon">📈</span>
+                    <span>Reports</span>
+                </a>
+            </nav>
+            <div style="padding: var(--spacing-xl); border-top: 1px solid var(--border);">
+                <a href="../user/idle.html?pc=PC-001" style="color: var(--text-secondary); font-size: 0.875rem;">
+                    ← กลับหน้าผู้ใช้
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="content-header">
+                <div>
+                    <h1>Reports & Statistics</h1>
+                    <div class="breadcrumb">
+                        <a href="dashboard.html">Admin</a>
+                        <span>/</span>
+                        <span>Reports</span>
+                    </div>
+                </div>
+                <button class="btn btn-success" onclick="exportCSV()">
+                    📥 Export CSV
+                </button>
+            </div>
+
+            <!-- Filter Panel -->
+            <div class="filter-panel">
+                <h3 style="margin-bottom: 1rem;">Filter Data</h3>
+                <div class="filter-grid">
+                    <div class="form-group">
+                        <label for="startDate">Start Date</label>
+                        <input type="date" id="startDate" value="2024-11-20">
+                    </div>
+                    <div class="form-group">
+                        <label for="endDate">End Date</label>
+                        <input type="date" id="endDate" value="2024-11-28">
+                    </div>
+                    <div class="form-group">
+                        <label for="userType">User Type</label>
+                        <select id="userType">
+                            <option value="all">ทั้งหมด</option>
+                            <option value="internal">นักศึกษา/บุคลากร</option>
+                            <option value="external">บุคคลภายนอก</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="faculty">Faculty</label>
+                        <select id="faculty">
+                            <option value="all">ทั้งหมด</option>
+                            <option value="วิทยาศาสตร์">วิทยาศาสตร์</option>
+                            <option value="วิศวกรรมศาสตร์">วิศวกรรมศาสตร์</option>
+                            <option value="ครุศาสตร์">ครุศาสตร์</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="updateCharts()">
+                    🔍 ค้นหา
+                </button>
+            </div>
+
+            <!-- Charts -->
+            <div class="charts-container">
+                <!-- Chart 1: Usage by Hour -->
+                <div class="chart-card">
+                    <h3>การใช้งานแยกตามช่วงเวลา</h3>
+                    <div id="hourlyChart"></div>
+                </div>
+
+                <!-- Chart 2: Usage by Faculty -->
+                <div class="chart-card">
+                    <h3>สัดส่วนผู้ใช้แยกตามคณะ</h3>
+                    <div id="facultyChart"></div>
+                </div>
+
+                <!-- Chart 3: Daily Trend -->
+                <div class="chart-card">
+                    <h3>Trend การใช้งานรายวัน</h3>
+                    <div id="trendChart"></div>
+                </div>
+
+                <!-- Chart 4: Rating -->
+                <div class="chart-card">
+                    <h3>คะแนนความพึงพอใจเฉลี่ย</h3>
+                    <div id="ratingChart"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/config.js"></script>
+    <script src="../js/utils.js"></script>
+    <script>
+        function updateCharts() {
+            createHourlyChart();
+            createFacultyChart();
+            createTrendChart();
+            createRatingChart();
+        }
+
+        // Chart 1: Hourly Usage
+        function createHourlyChart() {
+            const hours = Array.from({length: 12}, (_, i) => `${8+i}:00`);
+            const usage = [5, 8, 12, 15, 20, 18, 22, 25, 20, 15, 10, 8];
+
+            const data = [{
+                x: hours,
+                y: usage,
+                type: 'bar',
+                marker: {color: '#3b82f6'}
+            }];
+
+            const layout = {
+                xaxis: {title: 'ชั่วโมง'},
+                yaxis: {title: 'จำนวนผู้ใช้'},
+                margin: {t: 20}
+            };
+
+            Plotly.newPlot('hourlyChart', data, layout, {responsive: true});
+        }
+
+        // Chart 2: Faculty Distribution
+        function createFacultyChart() {
+            const logs = getUsageLogs().filter(log => log.userType === 'internal');
+
+            const facultyCount = {};
+            logs.forEach(log => {
+                facultyCount[log.faculty] = (facultyCount[log.faculty] || 0) + 1;
+            });
+
+            const data = [{
+                values: Object.values(facultyCount),
+                labels: Object.keys(facultyCount),
+                type: 'pie'
+            }];
+
+            const layout = {
+                margin: {t: 20}
+            };
+
+            Plotly.newPlot('facultyChart', data, layout, {responsive: true});
+        }
+
+        // Chart 3: Daily Trend
+        function createTrendChart() {
+            const days = ['20 พ.ย.', '21 พ.ย.', '22 พ.ย.', '23 พ.ย.', '24 พ.ย.', '25 พ.ย.', '26 พ.ย.', '27 พ.ย.'];
+            const users = [45, 52, 48, 60, 55, 58, 50, 62];
+
+            const data = [{
+                x: days,
+                y: users,
+                type: 'scatter',
+                mode: 'lines+markers',
+                line: {color: '#8b5cf6'}
+            }];
+
+            const layout = {
+                xaxis: {title: 'วันที่'},
+                yaxis: {title: 'จำนวนผู้ใช้'},
+                margin: {t: 20}
+            };
+
+            Plotly.newPlot('trendChart', data, layout, {responsive: true});
+        }
+
+        // Chart 4: Rating
+        function createRatingChart() {
+            const logs = getUsageLogs().filter(log => log.rating);
+
+            const ratingCount = [0, 0, 0, 0, 0];
+            logs.forEach(log => {
+                if (log.rating >= 1 && log.rating <= 5) {
+                    ratingCount[log.rating - 1]++;
+                }
+            });
+
+            const data = [{
+                x: ['1 ดาว', '2 ดาว', '3 ดาว', '4 ดาว', '5 ดาว'],
+                y: ratingCount,
+                type: 'bar',
+                marker: {color: ['#ef4444', '#f59e0b', '#eab308', '#84cc16', '#10b981']}
+            }];
+
+            const layout = {
+                xaxis: {title: 'คะแนน'},
+                yaxis: {title: 'จำนวน'},
+                margin: {t: 20}
+            };
+
+            Plotly.newPlot('ratingChart', data, layout, {responsive: true});
+        }
+
+        function exportCSV() {
+            const logs = getUsageLogs();
+            exportToCSV(logs, 'usage_report_' + new Date().toISOString().split('T')[0] + '.csv');
+            showAlert('ดาวน์โหลด CSV สำเร็จ', 'success');
+        }
+
+        // Initialize
+        updateCharts();
+    </script>
+</body>
+</html>

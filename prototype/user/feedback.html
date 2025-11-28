@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แบบสอบถามความพึงพอใจ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/user.css">
+</head>
+<body>
+    <div class="user-container">
+        <div class="user-card fade-in">
+            <div class="user-header">
+                <div class="pc-badge" id="pcBadge">PC-001</div>
+                <h1>แบบสอบถามความพึงพอใจ</h1>
+                <p>ขอบคุณที่ใช้บริการ</p>
+            </div>
+
+            <div class="feedback-container">
+                <!-- Session Summary -->
+                <div class="session-summary">
+                    <h3>สรุปการใช้งาน</h3>
+                    <div class="duration-display" id="durationDisplay">45 นาที</div>
+                    <p class="duration-label">ระยะเวลาที่ใช้งาน</p>
+                </div>
+
+                <!-- Rating -->
+                <div>
+                    <div class="rating-label">ความพึงพอใจต่อการใช้งาน</div>
+                    <div class="star-rating" id="starRating">
+                        <span class="star" data-rating="1">★</span>
+                        <span class="star" data-rating="2">★</span>
+                        <span class="star" data-rating="3">★</span>
+                        <span class="star" data-rating="4">★</span>
+                        <span class="star" data-rating="5">★</span>
+                    </div>
+                    <p id="ratingText" style="text-align: center; color: var(--text-secondary); margin-top: 0.5rem;">
+                        กรุณาเลือกคะแนน
+                    </p>
+                </div>
+
+                <!-- Feedback Form -->
+                <form class="feedback-form" id="feedbackForm">
+                    <div class="form-group">
+                        <label for="feedback">ข้อเสนอแนะ (ถ้ามี)</label>
+                        <textarea
+                            id="feedback"
+                            placeholder="กรุณาแสดงความคิดเห็นหรือข้อเสนอแนะ..."
+                            rows="4"
+                        ></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-lg btn-block" id="submitBtn">
+                        ส่งข้อมูลและออกจากระบบ
+                    </button>
+
+                    <button type="button" class="btn btn-outline btn-block" id="skipBtn" style="margin-top: 1rem;">
+                        ข้ามการประเมิน
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/config.js"></script>
+    <script src="../js/utils.js"></script>
+    <script>
+        // Get parameters
+        const params = getURLParams();
+        const pcId = params.pc || 'PC-001';
+        const userId = params.user;
+        const duration = parseInt(params.duration) || 0;
+
+        document.getElementById('pcBadge').textContent = pcId;
+        document.getElementById('durationDisplay').textContent = duration + ' นาที';
+
+        let selectedRating = 0;
+
+        // Rating stars
+        const stars = document.querySelectorAll('.star');
+        const ratingText = document.getElementById('ratingText');
+
+        const ratingLabels = {
+            1: 'ไม่พอใจมาก',
+            2: 'ไม่พอใจ',
+            3: 'ปานกลาง',
+            4: 'พอใจ',
+            5: 'พอใจมาก'
+        };
+
+        stars.forEach(star => {
+            star.addEventListener('click', function() {
+                selectedRating = parseInt(this.dataset.rating);
+
+                // Update stars
+                stars.forEach((s, index) => {
+                    if (index < selectedRating) {
+                        s.classList.add('active');
+                    } else {
+                        s.classList.remove('active');
+                    }
+                });
+
+                // Update text
+                ratingText.textContent = ratingLabels[selectedRating];
+                ratingText.style.color = 'var(--primary)';
+            });
+
+            // Hover effect
+            star.addEventListener('mouseenter', function() {
+                const rating = parseInt(this.dataset.rating);
+                stars.forEach((s, index) => {
+                    if (index < rating) {
+                        s.style.color = '#fbbf24';
+                    } else {
+                        s.style.color = 'var(--border)';
+                    }
+                });
+            });
+
+            star.addEventListener('mouseleave', function() {
+                stars.forEach((s, index) => {
+                    if (index < selectedRating) {
+                        s.style.color = '#fbbf24';
+                    } else {
+                        s.style.color = 'var(--border)';
+                    }
+                });
+            });
+        });
+
+        // Submit feedback
+        document.getElementById('feedbackForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            if (selectedRating === 0) {
+                showAlert('กรุณาเลือกระดับความพึงพอใจ', 'warning');
+                return;
+            }
+
+            submitFeedback();
+        });
+
+        // Skip button
+        document.getElementById('skipBtn').addEventListener('click', function() {
+            if (confirm('ต้องการข้ามการประเมินหรือไม่?')) {
+                submitFeedback(true);
+            }
+        });
+
+        function submitFeedback(skip = false) {
+            const feedbackText = document.getElementById('feedback').value.trim();
+
+            showLoading('กำลังบันทึกข้อมูล...');
+
+            setTimeout(() => {
+                try {
+                    // End session and save log
+                    endSession(
+                        pcId,
+                        userId,
+                        skip ? null : selectedRating,
+                        skip ? null : feedbackText
+                    );
+
+                    hideLoading();
+                    showAlert('ขอบคุณสำหรับการใช้บริการ', 'success');
+
+                    // Redirect to idle after 1.5 seconds
+                    setTimeout(() => {
+                        navigateTo('idle.html', { pc: pcId });
+                    }, 1500);
+
+                } catch (error) {
+                    hideLoading();
+                    showAlert('เกิดข้อผิดพลาด: ' + error.message, 'danger');
+                }
+            }, 1000);
+        }
+    </script>
+</body>
+</html>

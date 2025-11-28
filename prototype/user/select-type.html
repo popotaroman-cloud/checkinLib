@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เลือกประเภทผู้ใช้ - ระบบเช็คอินคอมพิวเตอร์</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/user.css">
+</head>
+<body>
+    <div class="user-container">
+        <div class="user-card fade-in">
+            <div class="user-header">
+                <div class="pc-badge" id="pcBadge">PC-001</div>
+                <h1>เลือกประเภทผู้ใช้</h1>
+                <p>กรุณาเลือกประเภทของคุณเพื่อเข้าใช้งาน</p>
+            </div>
+
+            <div class="type-selector">
+                <!-- Internal User Option -->
+                <button class="type-card" id="internalBtn">
+                    <div class="icon">👨‍🎓</div>
+                    <h3>นักศึกษา / บุคลากร</h3>
+                    <p>ใช้รหัสนักศึกษาหรือรหัสบุคลากร</p>
+                </button>
+
+                <!-- External User Option -->
+                <button class="type-card secondary" id="externalBtn">
+                    <div class="icon">👤</div>
+                    <h3>บุคคลภายนอก</h3>
+                    <p>กรอกข้อมูลส่วนตัว</p>
+                </button>
+            </div>
+
+            <div class="btn-group" style="margin-top: 2rem;">
+                <button class="btn btn-cancel" id="cancelBtn">
+                    ← ยกเลิก
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/config.js"></script>
+    <script src="../js/utils.js"></script>
+    <script>
+        // Get PC ID from URL
+        const params = getURLParams();
+        const pcId = params.pc || 'PC-001';
+
+        // Display PC Badge
+        document.getElementById('pcBadge').textContent = pcId;
+
+        // Internal User Button
+        document.getElementById('internalBtn').addEventListener('click', function() {
+            navigateTo('login-internal.html', { pc: pcId });
+        });
+
+        // External User Button
+        document.getElementById('externalBtn').addEventListener('click', function() {
+            navigateTo('login-external.html', { pc: pcId });
+        });
+
+        // Cancel Button
+        document.getElementById('cancelBtn').addEventListener('click', function() {
+            navigateTo('idle.html', { pc: pcId });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>Admin Panel</h2>
+                <p>ระบบเช็คอินคอมพิวเตอร์</p>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item active">
+                    <span class="icon">📊</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="monitor.html" class="nav-item">
+                    <span class="icon">🖥️</span>
+                    <span>Monitor</span>
+                </a>
+                <a href="manage-pc.html" class="nav-item">
+                    <span class="icon">💻</span>
+                    <span>Manage PC</span>
+                </a>
+                <a href="manage-software.html" class="nav-item">
+                    <span class="icon">📦</span>
+                    <span>Software</span>
+                </a>
+                <a href="import-reservation.html" class="nav-item">
+                    <span class="icon">📥</span>
+                    <span>Import Reservation</span>
+                </a>
+                <a href="reports.html" class="nav-item">
+                    <span class="icon">📈</span>
+                    <span>Reports</span>
+                </a>
+            </nav>
+            <div style="padding: var(--spacing-xl); border-top: 1px solid var(--border);">
+                <a href="../user/idle.html?pc=PC-001" style="color: var(--text-secondary); font-size: 0.875rem;">
+                    ← กลับหน้าผู้ใช้
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="content-header">
+                <div>
+                    <h1>Dashboard</h1>
+                    <div class="breadcrumb">
+                        <span>Admin</span>
+                        <span>/</span>
+                        <span>Dashboard</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <div>
+                            <div class="stat-card-value" id="availableCount">0</div>
+                            <div class="stat-card-label">เครื่องว่าง</div>
+                        </div>
+                        <div class="stat-card-icon success">
+                            <span>✓</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <div>
+                            <div class="stat-card-value" id="occupiedCount">0</div>
+                            <div class="stat-card-label">กำลังใช้งาน</div>
+                        </div>
+                        <div class="stat-card-icon danger">
+                            <span>●</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <div>
+                            <div class="stat-card-value" id="maintenanceCount">0</div>
+                            <div class="stat-card-label">ซ่อมบำรุง</div>
+                        </div>
+                        <div class="stat-card-icon warning">
+                            <span>⚠</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <div>
+                            <div class="stat-card-value" id="todayUsers">0</div>
+                            <div class="stat-card-label">ผู้ใช้วันนี้</div>
+                        </div>
+                        <div class="stat-card-icon primary">
+                            <span>👥</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Quick Actions</h3>
+                </div>
+                <div class="card-body">
+                    <div class="flex gap-2">
+                        <a href="monitor.html" class="btn btn-primary">
+                            🖥️ Monitor PCs
+                        </a>
+                        <a href="reports.html" class="btn btn-secondary">
+                            📊 View Reports
+                        </a>
+                        <a href="import-reservation.html" class="btn btn-outline">
+                            📥 Import Reservations
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activities -->
+            <div class="activity-list" style="margin-top: 2rem;">
+                <h3 style="margin-bottom: 1rem;">Recent Activities</h3>
+                <div id="recentActivities">
+                    <!-- Activities will be loaded here -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/config.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/admin-dashboard.js"></script>
+    <script>
+        // Load statistics
+        function loadStats() {
+            const stats = getPCStatistics();
+            const todayStats = getTodayStatistics();
+
+            document.getElementById('availableCount').textContent = stats.available;
+            document.getElementById('occupiedCount').textContent = stats.occupied;
+            document.getElementById('maintenanceCount').textContent = stats.maintenance;
+            document.getElementById('todayUsers').textContent = todayStats.totalUsers;
+        }
+
+        // Load recent activities
+        function loadRecentActivities() {
+            const logs = getUsageLogs().slice(-5).reverse();
+            const container = document.getElementById('recentActivities');
+
+            if (logs.length === 0) {
+                container.innerHTML = '<p class="text-muted">ไม่มีกิจกรรมล่าสุด</p>';
+                return;
+            }
+
+            container.innerHTML = logs.map(log => `
+                <div class="activity-item">
+                    <div class="activity-icon ${log.userType === 'internal' ? 'bg-success' : 'bg-warning'}">
+                        ${log.userType === 'internal' ? '👨‍🎓' : '👤'}
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-title">${log.userName} - ${log.pcId}</div>
+                        <div class="activity-time">
+                            ${formatDateThai(log.startTime)} | ระยะเวลา ${log.duration} นาที
+                            ${log.rating ? ` | คะแนน ${log.rating}/5` : ''}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Initialize
+        loadStats();
+        loadRecentActivities();
+
+        // Refresh every 30 seconds
+        setInterval(() => {
+            loadStats();
+            loadRecentActivities();
+        }, 30000);
+    </script>
+</body>
+</html>

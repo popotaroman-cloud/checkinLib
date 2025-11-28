@@ -1,0 +1,79 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+
+' Actors
+actor "ผู้ใช้บริการ (User)" as User
+actor "นักศึกษา/บุคลากร (Internal User)" as Internal
+actor "บุคคลภายนอก (Outsider)" as External
+actor "ผู้ดูแลระบบ (Admin)" as Admin
+actor "ระบบทะเบียน (Reg API)" as RegAPI
+
+' Inheritance
+Internal --|> User
+External --|> User
+
+rectangle "ระบบเช็คอินคอมพิวเตอร์ (Computer Lab Check-in System)" {
+
+  ' --- User Use Cases ---
+  usecase "เช็คอินเข้าใช้งาน (Check-in)" as UC_CheckIn
+  usecase "ระบุรหัสนักศึกษา/บุคลากร" as UC_LoginInternal
+  usecase "กรอกข้อมูลส่วนตัว" as UC_LoginExternal
+  usecase "เช็คเอาท์ (Check-out)" as UC_CheckOut
+  usecase "ให้คะแนนความพึงพอใจ (Feedback)" as UC_Feedback
+
+  ' --- Admin Use Cases ---
+  usecase "จัดการข้อมูลเครื่องคอมพิวเตอร์ (Manage PC Info)" as UC_ManagePC
+  usecase "เปลี่ยนสถานะเครื่อง/เปิด-ปิด (Toggle Status)" as UC_ToggleStatus
+  usecase "จัดการข้อมูลซอฟต์แวร์ (Manage Software)" as UC_ManageSoft
+  usecase "สร้าง QR Code ประจำเครื่อง (Generate QR)" as UC_GenQR
+  usecase "นำเข้าข้อมูลการจอง (Import Reservation)" as UC_ImportRes
+  usecase "สั่ง Logout แทนผู้ใช้ (Force Logout)" as UC_ForceLogout
+
+  usecase "ตรวจสอบสถานะเครื่อง (Monitor Status)" as UC_Monitor
+  note right of UC_Monitor : ดูแบบ Map หรือ Table
+
+  usecase "ดูรายงานสรุป (View Reports)" as UC_Report
+  usecase "ดาวน์โหลด CSV (Export CSV)" as UC_Export
+
+  ' --- System Process (Internal Logic) ---
+  usecase "ดึงข้อมูลคณะ/ชั้นปี (Fetch User Info)" as UC_FetchInfo
+  usecase "ตรวจสอบสิทธิ์การจอง (Validate Reservation)" as UC_ValidateRes
+
+}
+
+' --- Relationships ---
+
+' User Check-in Flow
+User -- UC_CheckIn
+Internal ..> UC_LoginInternal : <<use>>
+External ..> UC_LoginExternal : <<use>>
+UC_CheckIn <.. UC_LoginInternal : <<extend>>
+UC_CheckIn <.. UC_LoginExternal : <<extend>>
+
+' User Check-out Flow
+User -- UC_CheckOut
+UC_CheckOut ..> UC_Feedback : <<include>>
+
+' API Connection
+UC_LoginInternal -- RegAPI : (ดึงข้อมูล)
+UC_LoginInternal ..> UC_FetchInfo : <<include>>
+
+' Admin Actions
+Admin -- UC_ManagePC
+Admin -- UC_ToggleStatus
+Admin -- UC_ManageSoft
+Admin -- UC_GenQR
+Admin -- UC_ImportRes
+Admin -- UC_ForceLogout
+Admin -- UC_Monitor
+Admin -- UC_Report
+
+' Reporting Flow
+UC_Report <.. UC_Export : <<extend>>
+
+' Validation Logic
+UC_CheckIn ..> UC_ValidateRes : <<include>>
+UC_ImportRes -- UC_ValidateRes : (ใช้ข้อมูลการจอง)
+
+@enduml

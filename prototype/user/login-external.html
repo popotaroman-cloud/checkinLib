@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ลงทะเบียน - บุคคลภายนอก</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/user.css">
+</head>
+<body>
+    <div class="user-container">
+        <div class="user-card fade-in">
+            <div class="user-header">
+                <div class="pc-badge" id="pcBadge">PC-001</div>
+                <h1>ลงทะเบียนบุคคลภายนอก</h1>
+                <p>กรุณากรอกข้อมูลส่วนตัว</p>
+            </div>
+
+            <form class="login-form" id="registerForm">
+                <div class="form-group">
+                    <label for="nationalId">เลขบัตรประชาชน</label>
+                    <input
+                        type="text"
+                        id="nationalId"
+                        placeholder="1234567890123"
+                        required
+                        maxlength="13"
+                        pattern="[0-9]{13}"
+                    >
+                    <div class="error-message hidden" id="nationalIdError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="firstName">ชื่อ</label>
+                    <input
+                        type="text"
+                        id="firstName"
+                        placeholder="ชื่อจริง"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="lastName">นามสกุล</label>
+                    <input
+                        type="text"
+                        id="lastName"
+                        placeholder="นามสกุล"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="organization">หน่วยงาน / สถาบัน</label>
+                    <input
+                        type="text"
+                        id="organization"
+                        placeholder="บริษัท ABC จำกัด"
+                        required
+                    >
+                </div>
+
+                <div class="btn-group">
+                    <button type="button" class="btn btn-outline" id="backBtn">
+                        ← กลับ
+                    </button>
+                    <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+                        ลงทะเบียน
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../js/config.js"></script>
+    <script src="../js/utils.js"></script>
+    <script>
+        // Get PC ID from URL
+        const params = getURLParams();
+        const pcId = params.pc || 'PC-001';
+        document.getElementById('pcBadge').textContent = pcId;
+
+        const nationalIdInput = document.getElementById('nationalId');
+        const nationalIdError = document.getElementById('nationalIdError');
+
+        // Validate National ID on blur
+        nationalIdInput.addEventListener('blur', function() {
+            const nationalId = this.value.trim();
+
+            if (nationalId.length === 0) return;
+
+            if (!validateNationalId(nationalId)) {
+                nationalIdError.textContent = 'รูปแบบเลขบัตรประชาชนไม่ถูกต้อง';
+                nationalIdError.classList.remove('hidden');
+                nationalIdInput.classList.add('error');
+            } else {
+                nationalIdError.classList.add('hidden');
+                nationalIdInput.classList.remove('error');
+            }
+        });
+
+        // Auto format - add only numbers
+        nationalIdInput.addEventListener('input', function() {
+            this.value = this.value.replace(/\D/g, '');
+        });
+
+        // Form submit
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const nationalId = nationalIdInput.value.trim();
+            const firstName = document.getElementById('firstName').value.trim();
+            const lastName = document.getElementById('lastName').value.trim();
+            const organization = document.getElementById('organization').value.trim();
+
+            // Validate
+            if (!validateNationalId(nationalId)) {
+                showAlert('เลขบัตรประชาชนไม่ถูกต้อง', 'danger');
+                return;
+            }
+
+            if (!firstName || !lastName || !organization) {
+                showAlert('กรุณากรอกข้อมูลให้ครบถ้วน', 'danger');
+                return;
+            }
+
+            // Check PC availability
+            if (!isPCAvailable(pcId)) {
+                showAlert('เครื่องนี้ไม่พร้อมใช้งาน', 'danger');
+                return;
+            }
+
+            showLoading('กำลังบันทึกข้อมูล...');
+
+            // Simulate delay
+            setTimeout(() => {
+                // Add external user
+                const newUser = addExternalUser({
+                    nationalId,
+                    firstName,
+                    lastName,
+                    organization
+                });
+
+                // Start session
+                const session = startSession(pcId, newUser.id, 'external', {
+                    name: `${firstName} ${lastName}`,
+                    organization
+                });
+
+                hideLoading();
+
+                // Navigate to active session
+                navigateTo('active-session.html', {
+                    pc: pcId,
+                    user: newUser.id
+                });
+            }, 1000);
+        });
+
+        // Back button
+        document.getElementById('backBtn').addEventListener('click', function() {
+            navigateTo('select-type.html', { pc: pcId });
+        });
+    </script>
+</body>
+</html>
