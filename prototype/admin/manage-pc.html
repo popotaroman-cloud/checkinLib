@@ -130,6 +130,7 @@
 
     <script src="../js/config.js"></script>
     <script src="../js/utils.js"></script>
+    <script src="../js/data-manager.js"></script>
     <script>
         let editingPCId = null;
 
@@ -201,35 +202,67 @@
         document.getElementById('pcForm').addEventListener('submit', function(e) {
             e.preventDefault();
 
-            const formData = {
-                id: document.getElementById('pcId').value,
-                location: document.getElementById('location').value,
-                status: document.getElementById('status').value
-            };
+            const pcId = document.getElementById('pcId').value;
+            const location = document.getElementById('location').value;
+            const status = document.getElementById('status').value;
 
             showLoading('กำลังบันทึก...');
 
-            setTimeout(() => {
-                // In real app, save to database
-                showAlert(editingPCId ? 'แก้ไขสำเร็จ' : 'เพิ่มเครื่องใหม่สำเร็จ', 'success');
-                hideLoading();
+            try {
+                if (editingPCId) {
+                    // แก้ไข PC
+                    const [row, number] = location.split(/(\d+)/);
+                    DataManager.updateComputer(editingPCId, {
+                        id: pcId,
+                        row: row || location.charAt(0),
+                        number: parseInt(number) || 1,
+                        location: location,
+                        status: status
+                    });
+
+                    hideLoading();
+                    showAlert('แก้ไขเครื่อง ' + pcId + ' สำเร็จ', 'success');
+                } else {
+                    // เพิ่ม PC ใหม่
+                    const [row, number] = location.split(/(\d+)/);
+                    DataManager.addComputer({
+                        id: pcId,
+                        row: row || location.charAt(0),
+                        number: parseInt(number) || 1,
+                        location: location,
+                        status: status,
+                        specs: 'N/A',
+                        software: [],
+                        notes: ''
+                    });
+
+                    hideLoading();
+                    showAlert('เพิ่มเครื่อง ' + pcId + ' สำเร็จ', 'success');
+                }
+
                 closeFormModal();
                 loadPCTable();
-            }, 1000);
+
+            } catch (error) {
+                hideLoading();
+                showAlert('เกิดข้อผิดพลาด: ' + error.message, 'danger');
+            }
         });
 
         // Delete PC
         function deletePC(pcId) {
             if (confirm(`ต้องการลบเครื่อง ${pcId} หรือไม่?`)) {
                 showLoading('กำลังลบ...');
-                setTimeout(() => {
-                    const computers = getComputers();
-                    const filtered = computers.filter(pc => pc.id !== pcId);
-                    saveComputers(filtered);
+
+                try {
+                    DataManager.deleteComputer(pcId);
                     hideLoading();
-                    showAlert('ลบสำเร็จ', 'success');
+                    showAlert('ลบเครื่อง ' + pcId + ' สำเร็จ', 'success');
                     loadPCTable();
-                }, 1000);
+                } catch (error) {
+                    hideLoading();
+                    showAlert('ไม่สามารถลบได้: ' + error.message, 'danger');
+                }
             }
         }
 

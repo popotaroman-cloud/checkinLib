@@ -45,6 +45,7 @@
 
     <script src="../js/config.js"></script>
     <script src="../js/utils.js"></script>
+    <script src="../js/session-manager.js"></script>
     <script>
         // Get parameters
         const params = getURLParams();
@@ -53,59 +54,53 @@
 
         document.getElementById('pcBadge').textContent = pcId;
 
-        // Get session from localStorage
-        const session = getCurrentSession();
-
-        if (!session || session.pcId !== pcId || session.userId !== userId) {
-            // Invalid session - redirect to idle
-            alert('Session ไม่ถูกต้อง');
+        // ตรวจสอบ Session
+        if (!SessionManager.hasActiveSession()) {
+            alert('ไม่พบ Session การใช้งาน');
             navigateTo('idle.html', { pc: pcId });
         } else {
-            // Display user info
-            document.getElementById('userName').textContent = session.userName;
-            document.getElementById('userFaculty').textContent = session.faculty;
-            document.getElementById('sessionStart').textContent = 'เริ่มใช้งาน: ' + formatTime(session.startTime);
+            const sessionInfo = SessionManager.getSessionInfo();
 
-            // Timer
-            let startTime = new Date(session.startTime);
-            let timerInterval;
+            // ตรวจสอบว่าตรงกับ URL หรือไม่
+            if (sessionInfo.pcId !== pcId || sessionInfo.userId !== userId) {
+                alert('Session ไม่ถูกต้อง');
+                navigateTo('idle.html', { pc: pcId });
+            } else {
+                // แสดงข้อมูลผู้ใช้
+                document.getElementById('userName').textContent = sessionInfo.userName;
+                document.getElementById('userFaculty').textContent = sessionInfo.faculty;
+                document.getElementById('sessionStart').textContent = 'เริ่มใช้งาน: ' + formatTime(sessionInfo.startTime);
 
-            function updateTimer() {
-                const now = new Date();
-                const diff = now - startTime;
+                // เริ่มจับเวลาด้วย SessionManager
+                SessionManager.startTimer((info) => {
+                    // อัพเดท Timer
+                    document.getElementById('timer').textContent = info.elapsed.formatted;
 
-                const hours = Math.floor(diff / 3600000);
-                const minutes = Math.floor((diff % 3600000) / 60000);
-                const seconds = Math.floor((diff % 60000) / 1000);
-
-                document.getElementById('timer').textContent =
-                    `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-            }
-
-            // Update timer every second
-            updateTimer();
-            timerInterval = setInterval(updateTimer, 1000);
-
-            // Checkout button
-            document.getElementById('checkoutBtn').addEventListener('click', function() {
-                clearInterval(timerInterval);
-
-                const duration = calculateDuration(session.startTime);
-
-                // Navigate to feedback page
-                navigateTo('feedback.html', {
-                    pc: pcId,
-                    user: userId,
-                    duration: duration
+                    // เปลี่ยนสีถ้าใกล้หมดเวลา
+                    if (info.isNearLimit) {
+                        document.getElementById('timer').style.color = '#ef4444';
+                    }
                 });
-            });
 
-            // Prevent accidental page close
-            window.addEventListener('beforeunload', function(e) {
-                e.preventDefault();
-                e.returnValue = '';
-                return '';
-            });
+                // ป้องกันการปิดหน้าต่างโดยไม่ตั้งใจ
+                SessionManager.enableUnloadProtection();
+
+                // Checkout button
+                document.getElementById('checkoutBtn').addEventListener('click', function() {
+                    const confirmed = confirm('ต้องการเลิกใช้งานหรือไม่?');
+
+                    if (confirmed) {
+                        const duration = SessionManager.getElapsedMinutes();
+
+                        // Navigate to feedback page
+                        navigateTo('feedback.html', {
+                            pc: pcId,
+                            user: userId,
+                            duration: duration
+                        });
+                    }
+                });
+            }
         }
     </script>
 </body>

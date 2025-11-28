@@ -68,6 +68,7 @@
 
     <script src="../js/config.js"></script>
     <script src="../js/utils.js"></script>
+    <script src="../js/session-manager.js"></script>
     <script>
         // Get PC ID from URL
         const params = getURLParams();
@@ -132,18 +133,36 @@
             // Check reservation (optional)
             const reservation = checkReservation(studentData.id, pcId);
 
-            // Start session
-            const session = startSession(pcId, studentData.id, 'internal', {
-                firstName: studentData.firstName,
-                lastName: studentData.lastName,
-                faculty: studentData.faculty
-            });
+            showLoading('กำลังเริ่มใช้งาน...');
 
-            // Navigate to active session
-            navigateTo('active-session.html', {
-                pc: pcId,
-                user: studentData.id
-            });
+            try {
+                // Start session with SessionManager
+                const session = SessionManager.startNewSession(
+                    pcId,
+                    studentData.id,
+                    'internal',
+                    {
+                        name: studentData.name,
+                        firstName: studentData.firstName,
+                        lastName: studentData.lastName,
+                        faculty: studentData.faculty,
+                        year: studentData.year,
+                        program: studentData.program
+                    }
+                );
+
+                hideLoading();
+
+                // Navigate to active session
+                navigateTo('active-session.html', {
+                    pc: pcId,
+                    user: studentData.id
+                });
+
+            } catch (error) {
+                hideLoading();
+                showAlert('ไม่สามารถเริ่มใช้งานได้: ' + error.message, 'danger');
+            }
         });
 
         // Back button

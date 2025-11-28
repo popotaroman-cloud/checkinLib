@@ -66,6 +66,7 @@
 
     <script src="../js/config.js"></script>
     <script src="../js/utils.js"></script>
+    <script src="../js/session-manager.js"></script>
     <script>
         // Get parameters
         const params = getURLParams();
@@ -74,7 +75,20 @@
         const duration = parseInt(params.duration) || 0;
 
         document.getElementById('pcBadge').textContent = pcId;
-        document.getElementById('durationDisplay').textContent = duration + ' นาที';
+
+        // แสดงระยะเวลา
+        const hours = Math.floor(duration / 60);
+        const mins = duration % 60;
+        let durationText = '';
+        if (hours > 0) {
+            durationText = hours + ' ชั่วโมง';
+            if (mins > 0) {
+                durationText += ' ' + mins + ' นาที';
+            }
+        } else {
+            durationText = mins + ' นาที';
+        }
+        document.getElementById('durationDisplay').textContent = durationText;
 
         let selectedRating = 0;
 
@@ -155,29 +169,32 @@
 
             showLoading('กำลังบันทึกข้อมูล...');
 
-            setTimeout(() => {
-                try {
-                    // End session and save log
-                    endSession(
-                        pcId,
-                        userId,
-                        skip ? null : selectedRating,
-                        skip ? null : feedbackText
-                    );
+            try {
+                // End session with SessionManager
+                SessionManager.endCurrentSession(
+                    skip ? null : selectedRating,
+                    skip ? null : feedbackText
+                );
 
-                    hideLoading();
-                    showAlert('ขอบคุณสำหรับการใช้บริการ', 'success');
+                hideLoading();
+                showAlert('ขอบคุณสำหรับการใช้บริการ', 'success');
 
-                    // Redirect to idle after 1.5 seconds
-                    setTimeout(() => {
-                        navigateTo('idle.html', { pc: pcId });
-                    }, 1500);
+                // Redirect to idle after 1.5 seconds
+                setTimeout(() => {
+                    navigateTo('idle.html', { pc: pcId });
+                }, 1500);
 
-                } catch (error) {
-                    hideLoading();
-                    showAlert('เกิดข้อผิดพลาด: ' + error.message, 'danger');
-                }
-            }, 1000);
+            } catch (error) {
+                hideLoading();
+
+                // อาจจะถูก Force Logout ไปแล้ว
+                console.error('Error ending session:', error);
+                showAlert('บันทึกข้อมูลสำเร็จ', 'success');
+
+                setTimeout(() => {
+                    navigateTo('idle.html', { pc: pcId });
+                }, 1500);
+            }
         }
     </script>
 </body>
