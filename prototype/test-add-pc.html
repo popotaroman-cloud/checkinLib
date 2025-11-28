@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Add PC</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/common.css">
+    <style>
+        body {
+            padding: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+            font-family: 'Sarabun', sans-serif;
+        }
+        .test-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        .test-card h2 {
+            margin-top: 0;
+            color: var(--primary);
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 0.375rem;
+            font-family: inherit;
+        }
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            font-weight: 500;
+            font-family: inherit;
+        }
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        .result {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 0.375rem;
+            border-left: 4px solid var(--primary);
+            margin-top: 1rem;
+        }
+        .result.success {
+            border-color: var(--success);
+            background: #d1fae5;
+        }
+        .result.error {
+            border-color: var(--danger);
+            background: #fee2e2;
+        }
+        .computer-list {
+            list-style: none;
+            padding: 0;
+        }
+        .computer-list li {
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .computer-list li:last-child {
+            border-bottom: none;
+        }
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+        }
+        .badge-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .badge-danger {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-card">
+        <h2>🧪 Test - Add Computer</h2>
+        <p>ทดสอบการเพิ่มเครื่อง PC เข้าระบบ</p>
+
+        <form id="testForm">
+            <div class="form-group">
+                <label for="pcId">PC ID *</label>
+                <input type="text" id="pcId" required placeholder="PC-099" value="PC-TEST">
+            </div>
+
+            <div class="form-group">
+                <label for="location">Location *</label>
+                <input type="text" id="location" required placeholder="A1" value="Z9">
+            </div>
+
+            <div class="form-group">
+                <label for="status">Status</label>
+                <select id="status">
+                    <option value="available">Available</option>
+                    <option value="maintenance">Maintenance</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary">➕ Add Computer</button>
+        </form>
+
+        <div id="result"></div>
+    </div>
+
+    <div class="test-card">
+        <h2>💾 Current Computers in LocalStorage</h2>
+        <button class="btn btn-success" onclick="loadComputers()">🔄 Refresh List</button>
+        <button class="btn btn-danger" onclick="clearAll()">🗑️ Clear All</button>
+
+        <div id="computersList" style="margin-top: 1rem;"></div>
+    </div>
+
+    <div class="test-card">
+        <h2>🔍 Console Output</h2>
+        <p>เปิด Developer Console (F12) เพื่อดู detailed logs</p>
+        <button class="btn btn-primary" onclick="testDirectAdd()">Test Direct Add</button>
+        <button class="btn btn-primary" onclick="testGetComputers()">Test Get Computers</button>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/data-manager.js"></script>
+
+    <script>
+        console.log('✅ Test page loaded');
+        console.log('📦 DataManager available:', typeof DataManager);
+
+        // Form Submit
+        document.getElementById('testForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const pcId = document.getElementById('pcId').value.trim();
+            const location = document.getElementById('location').value.trim();
+            const status = document.getElementById('status').value;
+
+            console.log('\n🚀 === Starting Add Computer Test ===');
+            console.log('Input:', { pcId, location, status });
+
+            const resultDiv = document.getElementById('result');
+
+            try {
+                // Parse location
+                const match = location.match(/^([A-Z]+)(\d+)$/i);
+                let row, number;
+
+                if (match) {
+                    row = match[1].toUpperCase();
+                    number = parseInt(match[2]);
+                } else {
+                    row = location.charAt(0).toUpperCase();
+                    number = parseInt(location.substring(1)) || 1;
+                }
+
+                console.log('Parsed location:', { row, number });
+
+                // Add computer
+                const newPC = DataManager.addComputer({
+                    id: pcId,
+                    row: row,
+                    number: number,
+                    location: location,
+                    status: status,
+                    specs: 'Test PC',
+                    software: [],
+                    notes: 'Created from test page'
+                });
+
+                console.log('✅ Success!', newPC);
+                console.log('=== Test Complete ===\n');
+
+                resultDiv.innerHTML = `
+                    <div class="result success">
+                        <strong>✅ Success!</strong><br>
+                        Added: ${newPC.id} at ${newPC.location}<br>
+                        Status: ${newPC.status}<br>
+                        Created: ${newPC.createdAt}
+                    </div>
+                `;
+
+                // Clear form
+                document.getElementById('pcId').value = '';
+                document.getElementById('location').value = '';
+
+                // Reload list
+                setTimeout(loadComputers, 500);
+
+            } catch (error) {
+                console.error('❌ Error:', error);
+                console.log('=== Test Failed ===\n');
+
+                resultDiv.innerHTML = `
+                    <div class="result error">
+                        <strong>❌ Error!</strong><br>
+                        ${error.message}
+                    </div>
+                `;
+            }
+        });
+
+        // Load computers list
+        function loadComputers() {
+            const computers = getComputers();
+            const listDiv = document.getElementById('computersList');
+
+            console.log('📋 Current computers:', computers.length);
+
+            if (computers.length === 0) {
+                listDiv.innerHTML = '<p style="color: #6b7280; margin-top: 1rem;">ไม่มีข้อมูล</p>';
+                return;
+            }
+
+            listDiv.innerHTML = `
+                <ul class="computer-list">
+                    ${computers.map(pc => `
+                        <li>
+                            <div>
+                                <strong>${pc.id}</strong> - ${pc.location || 'N/A'}
+                                <br>
+                                <small style="color: #6b7280;">${pc.specs || 'N/A'}</small>
+                            </div>
+                            <span class="badge badge-${pc.status === 'available' ? 'success' : 'danger'}">
+                                ${pc.status}
+                            </span>
+                        </li>
+                    `).join('')}
+                </ul>
+                <p style="margin-top: 1rem; color: #6b7280;">Total: ${computers.length} computers</p>
+            `;
+        }
+
+        // Clear all
+        function clearAll() {
+            if (confirm('ต้องการลบข้อมูลทั้งหมดหรือไม่?')) {
+                localStorage.removeItem(CONFIG.STORAGE_KEYS.COMPUTERS);
+                console.log('🗑️ Cleared all computers');
+                loadComputers();
+                document.getElementById('result').innerHTML = `
+                    <div class="result success">
+                        <strong>✅ Cleared!</strong> All computers removed
+                    </div>
+                `;
+            }
+        }
+
+        // Test direct add
+        function testDirectAdd() {
+            console.log('\n🧪 === Direct Add Test ===');
+            try {
+                const testPC = DataManager.addComputer({
+                    id: 'PC-DIRECT-' + Date.now(),
+                    row: 'X',
+                    number: 99,
+                    location: 'X99',
+                    status: 'available',
+                    specs: 'Direct test',
+                    software: []
+                });
+                console.log('✅ Direct add successful:', testPC);
+                alert('✅ Direct add successful!\nCheck console for details');
+                loadComputers();
+            } catch (error) {
+                console.error('❌ Direct add failed:', error);
+                alert('❌ Error: ' + error.message);
+            }
+        }
+
+        // Test get computers
+        function testGetComputers() {
+            console.log('\n🔍 === Get Computers Test ===');
+            const computers = getComputers();
+            console.log('Total computers:', computers.length);
+            console.table(computers);
+            alert(`Found ${computers.length} computers\nCheck console for details`);
+        }
+
+        // Initialize
+        loadComputers();
+    </script>
+</body>
+</html>
