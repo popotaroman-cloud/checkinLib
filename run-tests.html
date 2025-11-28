@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automated Tests - Check-in System</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Courier New', monospace;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #4ec9b0;
+            margin-bottom: 2rem;
+        }
+        .test-section {
+            background: #252526;
+            border: 1px solid #3e3e42;
+            border-radius: 4px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .test-section h2 {
+            color: #569cd6;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+        .test-item {
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+            background: #1e1e1e;
+            border-left: 3px solid #858585;
+            border-radius: 2px;
+        }
+        .test-item.success {
+            border-left-color: #4ec9b0;
+        }
+        .test-item.error {
+            border-left-color: #f48771;
+        }
+        .test-item.running {
+            border-left-color: #dcdcaa;
+        }
+        .btn {
+            background: #0e639c;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 1rem;
+            margin-right: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        .btn:hover {
+            background: #1177bb;
+        }
+        .btn-success {
+            background: #0e639c;
+        }
+        .btn-danger {
+            background: #c5262f;
+        }
+        .output {
+            background: #1e1e1e;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .success { color: #4ec9b0; }
+        .error { color: #f48771; }
+        .info { color: #569cd6; }
+        .warning { color: #dcdcaa; }
+        pre {
+            margin: 0.5rem 0;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Automated Test Suite - Check-in System</h1>
+
+        <div class="test-section">
+            <h2>Test Controls</h2>
+            <button class="btn btn-success" onclick="runAllTests()">▶️ Run All Tests</button>
+            <button class="btn" onclick="clearResults()">🗑️ Clear Results</button>
+            <button class="btn btn-danger" onclick="resetData()">🔄 Reset Data</button>
+        </div>
+
+        <div class="test-section">
+            <h2>Test 1: DataManager Availability</h2>
+            <div id="test1" class="test-item">Waiting...</div>
+            <button class="btn" onclick="runTest1()">Run Test 1</button>
+        </div>
+
+        <div class="test-section">
+            <h2>Test 2: Add Computer</h2>
+            <div id="test2" class="test-item">Waiting...</div>
+            <button class="btn" onclick="runTest2()">Run Test 2</button>
+        </div>
+
+        <div class="test-section">
+            <h2>Test 3: Update Computer</h2>
+            <div id="test3" class="test-item">Waiting...</div>
+            <button class="btn" onclick="runTest3()">Run Test 3</button>
+        </div>
+
+        <div class="test-section">
+            <h2>Test 4: Delete Computer</h2>
+            <div id="test4" class="test-item">Waiting...</div>
+            <button class="btn" onclick="runTest4()">Run Test 4</button>
+        </div>
+
+        <div class="test-section">
+            <h2>Test 5: LocalStorage Persistence</h2>
+            <div id="test5" class="test-item">Waiting...</div>
+            <button class="btn" onclick="runTest5()">Run Test 5</button>
+        </div>
+
+        <div class="test-section">
+            <h2>Console Output</h2>
+            <div id="output" class="output"></div>
+        </div>
+    </div>
+
+    <script src="prototype/js/config.js"></script>
+    <script src="prototype/js/utils.js"></script>
+    <script src="prototype/js/data-manager.js"></script>
+
+    <script>
+        let testResults = [];
+
+        function log(message, type = 'info') {
+            const output = document.getElementById('output');
+            const timestamp = new Date().toLocaleTimeString();
+            const line = document.createElement('pre');
+            line.className = type;
+            line.textContent = `[${timestamp}] ${message}`;
+            output.appendChild(line);
+            output.scrollTop = output.scrollHeight;
+            console.log(message);
+        }
+
+        function setTestStatus(testId, status, message) {
+            const element = document.getElementById(testId);
+            element.className = `test-item ${status}`;
+            element.textContent = message;
+        }
+
+        // Test 1: DataManager Availability
+        function runTest1() {
+            log('=== Test 1: DataManager Availability ===', 'info');
+            setTestStatus('test1', 'running', '⏳ Running...');
+
+            try {
+                if (typeof DataManager === 'undefined') {
+                    throw new Error('DataManager is not defined');
+                }
+
+                if (typeof DataManager.addComputer !== 'function') {
+                    throw new Error('DataManager.addComputer is not a function');
+                }
+
+                log('✅ DataManager is available', 'success');
+                log('✅ DataManager.addComputer is a function', 'success');
+                setTestStatus('test1', 'success', '✅ PASS: DataManager is available');
+                testResults.push({ test: 'DataManager Availability', status: 'PASS' });
+                return true;
+            } catch (error) {
+                log('❌ Test 1 failed: ' + error.message, 'error');
+                setTestStatus('test1', 'error', '❌ FAIL: ' + error.message);
+                testResults.push({ test: 'DataManager Availability', status: 'FAIL', error: error.message });
+                return false;
+            }
+        }
+
+        // Test 2: Add Computer
+        function runTest2() {
+            log('=== Test 2: Add Computer ===', 'info');
+            setTestStatus('test2', 'running', '⏳ Running...');
+
+            try {
+                const testPC = {
+                    id: 'PC-TEST-' + Date.now(),
+                    row: 'T',
+                    number: 99,
+                    location: 'T99',
+                    status: 'available',
+                    specs: 'Test PC',
+                    software: []
+                };
+
+                log('Adding computer: ' + testPC.id, 'info');
+                const result = DataManager.addComputer(testPC);
+
+                if (!result) {
+                    throw new Error('addComputer returned null/undefined');
+                }
+
+                if (result.id !== testPC.id) {
+                    throw new Error('Returned PC ID does not match');
+                }
+
+                // Verify it was saved
+                const computers = getComputers();
+                const found = computers.find(pc => pc.id === testPC.id);
+
+                if (!found) {
+                    throw new Error('Computer not found in LocalStorage');
+                }
+
+                log('✅ Computer added: ' + testPC.id, 'success');
+                log('✅ Computer saved to LocalStorage', 'success');
+                setTestStatus('test2', 'success', '✅ PASS: Computer added successfully');
+                testResults.push({ test: 'Add Computer', status: 'PASS' });
+
+                // Cleanup
+                DataManager.deleteComputer(testPC.id);
+                return true;
+            } catch (error) {
+                log('❌ Test 2 failed: ' + error.message, 'error');
+                setTestStatus('test2', 'error', '❌ FAIL: ' + error.message);
+                testResults.push({ test: 'Add Computer', status: 'FAIL', error: error.message });
+                return false;
+            }
+        }
+
+        // Test 3: Update Computer
+        function runTest3() {
+            log('=== Test 3: Update Computer ===', 'info');
+            setTestStatus('test3', 'running', '⏳ Running...');
+
+            try {
+                // First add a computer
+                const testPC = {
+                    id: 'PC-UPDATE-' + Date.now(),
+                    row: 'U',
+                    number: 88,
+                    location: 'U88',
+                    status: 'available',
+                    specs: 'Original',
+                    software: []
+                };
+
+                DataManager.addComputer(testPC);
+                log('Created test computer: ' + testPC.id, 'info');
+
+                // Update it
+                DataManager.updateComputer(testPC.id, {
+                    specs: 'Updated specs',
+                    notes: 'Test update'
+                });
+
+                // Verify update
+                const updated = getComputerById(testPC.id);
+
+                if (updated.specs !== 'Updated specs') {
+                    throw new Error('Specs not updated');
+                }
+
+                if (updated.notes !== 'Test update') {
+                    throw new Error('Notes not updated');
+                }
+
+                log('✅ Computer updated successfully', 'success');
+                setTestStatus('test3', 'success', '✅ PASS: Computer updated');
+                testResults.push({ test: 'Update Computer', status: 'PASS' });
+
+                // Cleanup
+                DataManager.deleteComputer(testPC.id);
+                return true;
+            } catch (error) {
+                log('❌ Test 3 failed: ' + error.message, 'error');
+                setTestStatus('test3', 'error', '❌ FAIL: ' + error.message);
+                testResults.push({ test: 'Update Computer', status: 'FAIL', error: error.message });
+                return false;
+            }
+        }
+
+        // Test 4: Delete Computer
+        function runTest4() {
+            log('=== Test 4: Delete Computer ===', 'info');
+            setTestStatus('test4', 'running', '⏳ Running...');
+
+            try {
+                // Add a computer
+                const testPC = {
+                    id: 'PC-DELETE-' + Date.now(),
+                    row: 'D',
+                    number: 77,
+                    location: 'D77',
+                    status: 'available',
+                    specs: 'To be deleted',
+                    software: []
+                };
+
+                DataManager.addComputer(testPC);
+                log('Created test computer: ' + testPC.id, 'info');
+
+                const beforeCount = getComputers().length;
+
+                // Delete it
+                DataManager.deleteComputer(testPC.id);
+
+                const afterCount = getComputers().length;
+
+                if (afterCount !== beforeCount - 1) {
+                    throw new Error('Computer count did not decrease');
+                }
+
+                const found = getComputerById(testPC.id);
+                if (found) {
+                    throw new Error('Computer still exists after deletion');
+                }
+
+                log('✅ Computer deleted successfully', 'success');
+                setTestStatus('test4', 'success', '✅ PASS: Computer deleted');
+                testResults.push({ test: 'Delete Computer', status: 'PASS' });
+                return true;
+            } catch (error) {
+                log('❌ Test 4 failed: ' + error.message, 'error');
+                setTestStatus('test4', 'error', '❌ FAIL: ' + error.message);
+                testResults.push({ test: 'Delete Computer', status: 'FAIL', error: error.message });
+                return false;
+            }
+        }
+
+        // Test 5: LocalStorage Persistence
+        function runTest5() {
+            log('=== Test 5: LocalStorage Persistence ===', 'info');
+            setTestStatus('test5', 'running', '⏳ Running...');
+
+            try {
+                const testPC = {
+                    id: 'PC-PERSIST-' + Date.now(),
+                    row: 'P',
+                    number: 66,
+                    location: 'P66',
+                    status: 'available',
+                    specs: 'Persistence test',
+                    software: []
+                };
+
+                // Add computer
+                DataManager.addComputer(testPC);
+                log('Added computer: ' + testPC.id, 'info');
+
+                // Get from LocalStorage directly
+                const stored = localStorage.getItem(CONFIG.STORAGE_KEYS.COMPUTERS);
+
+                if (!stored) {
+                    throw new Error('No data in LocalStorage');
+                }
+
+                const parsed = JSON.parse(stored);
+
+                if (!Array.isArray(parsed)) {
+                    throw new Error('LocalStorage data is not an array');
+                }
+
+                const found = parsed.find(pc => pc.id === testPC.id);
+
+                if (!found) {
+                    throw new Error('Computer not found in LocalStorage');
+                }
+
+                log('✅ Data persisted to LocalStorage', 'success');
+                log('✅ Data structure is valid', 'success');
+                setTestStatus('test5', 'success', '✅ PASS: Data persists correctly');
+                testResults.push({ test: 'LocalStorage Persistence', status: 'PASS' });
+
+                // Cleanup
+                DataManager.deleteComputer(testPC.id);
+                return true;
+            } catch (error) {
+                log('❌ Test 5 failed: ' + error.message, 'error');
+                setTestStatus('test5', 'error', '❌ FAIL: ' + error.message);
+                testResults.push({ test: 'LocalStorage Persistence', status: 'FAIL', error: error.message });
+                return false;
+            }
+        }
+
+        // Run all tests
+        async function runAllTests() {
+            log('========================================', 'info');
+            log('🚀 Starting Automated Test Suite', 'info');
+            log('========================================', 'info');
+
+            testResults = [];
+
+            const tests = [
+                runTest1,
+                runTest2,
+                runTest3,
+                runTest4,
+                runTest5
+            ];
+
+            for (const test of tests) {
+                test();
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+
+            // Summary
+            log('========================================', 'info');
+            log('📊 Test Summary', 'info');
+            log('========================================', 'info');
+
+            const passed = testResults.filter(t => t.status === 'PASS').length;
+            const failed = testResults.filter(t => t.status === 'FAIL').length;
+
+            log(`Total: ${testResults.length}`, 'info');
+            log(`✅ Passed: ${passed}`, 'success');
+            log(`❌ Failed: ${failed}`, failed > 0 ? 'error' : 'info');
+
+            if (failed === 0) {
+                log('🎉 All tests passed!', 'success');
+            } else {
+                log('⚠️ Some tests failed. Check details above.', 'warning');
+            }
+        }
+
+        function clearResults() {
+            document.getElementById('output').innerHTML = '';
+            log('Results cleared', 'info');
+        }
+
+        function resetData() {
+            if (confirm('ต้องการ Reset ข้อมูลทั้งหมดกลับเป็น Mock Data หรือไม่?')) {
+                Object.values(CONFIG.STORAGE_KEYS).forEach(key => {
+                    localStorage.removeItem(key);
+                });
+                log('🔄 Data reset to Mock Data', 'warning');
+                location.reload();
+            }
+        }
+
+        // Initialize
+        log('✅ Test Suite Ready', 'success');
+        log('Click "Run All Tests" to start', 'info');
+    </script>
+</body>
+</html>
