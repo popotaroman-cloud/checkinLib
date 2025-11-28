@@ -147,6 +147,15 @@
             addResult('=== Test 2: Add PC ===', 'info');
 
             try {
+                // Check prerequisites
+                if (typeof DataManager === 'undefined') {
+                    throw new Error('DataManager is not defined');
+                }
+
+                if (typeof DataManager.addComputer !== 'function') {
+                    throw new Error('DataManager.addComputer is not a function');
+                }
+
                 const testPC = {
                     id: 'PC-TEST-' + Date.now(),
                     row: 'Z',
@@ -158,17 +167,26 @@
                 };
 
                 addResult('Adding PC: ' + testPC.id, 'info');
+                addResult('Data: ' + JSON.stringify(testPC), 'info');
 
+                console.log('Calling DataManager.addComputer with:', testPC);
                 const result = DataManager.addComputer(testPC);
+                console.log('Result:', result);
+
+                if (!result) {
+                    throw new Error('DataManager.addComputer returned null/undefined');
+                }
 
                 addResult('✅ PC Added: ' + result.id, 'success');
                 addResult('✅ Location: ' + result.location, 'success');
+                addResult('✅ Status: ' + result.status, 'success');
                 addResult('✅ Test 2 PASSED', 'success');
 
                 refreshList();
             } catch (error) {
                 addResult('❌ Test 2 FAILED: ' + error.message, 'error');
-                console.error(error);
+                addResult('❌ Stack: ' + (error.stack || 'No stack trace'), 'error');
+                console.error('Full error:', error);
             }
         }
 
@@ -313,10 +331,35 @@
 
         // Initialize
         window.addEventListener('DOMContentLoaded', function() {
-            console.log('Page loaded');
+            console.log('=== Page Loaded ===');
             console.log('DataManager:', typeof DataManager);
             console.log('CONFIG:', typeof CONFIG);
             console.log('getComputers:', typeof getComputers);
+            console.log('saveComputers:', typeof saveComputers);
+            console.log('getComputerById:', typeof getComputerById);
+
+            // Check if scripts loaded correctly
+            if (typeof DataManager === 'undefined') {
+                addResult('❌ ERROR: DataManager not loaded!', 'error');
+                addResult('Check that data-manager.js is loaded correctly', 'error');
+            } else {
+                addResult('✅ DataManager loaded', 'success');
+            }
+
+            if (typeof CONFIG === 'undefined') {
+                addResult('❌ ERROR: CONFIG not loaded!', 'error');
+                addResult('Check that config.js is loaded correctly', 'error');
+            } else {
+                addResult('✅ CONFIG loaded', 'success');
+            }
+
+            if (typeof getComputers === 'undefined') {
+                addResult('❌ ERROR: utils.js not loaded!', 'error');
+                addResult('Check that utils.js is loaded correctly', 'error');
+            } else {
+                addResult('✅ utils.js loaded', 'success');
+            }
+
             refreshList();
         });
     </script>
