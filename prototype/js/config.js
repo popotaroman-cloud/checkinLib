@@ -245,13 +245,16 @@ const CONFIG = {
   API_DELAY: 1000,
   MAX_RESERVATION_HOURS: 4,
   COMPUTERS_PER_ROW: 5,
+  MAX_SESSION_TIME: 120, // นาที (2 ชั่วโมง)
+  WARNING_TIME: 10, // นาที (เตือนก่อนหมดเวลา 10 นาที)
 
   STORAGE_KEYS: {
     CURRENT_SESSION: 'checkin_current_session',
     USAGE_LOGS: 'checkin_usage_logs',
     COMPUTERS: 'checkin_computers',
     EXTERNAL_USERS: 'checkin_external_users',
-    RESERVATIONS: 'checkin_reservations'
+    RESERVATIONS: 'checkin_reservations',
+    SOFTWARE: 'checkin_software'
   }
 };
 
