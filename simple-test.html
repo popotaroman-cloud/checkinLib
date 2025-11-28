@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Test - Add PC</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h1 { color: #333; margin-bottom: 20px; }
+        h2 { color: #666; margin-top: 30px; margin-bottom: 15px; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        button.danger { background: #dc3545; }
+        button.danger:hover { background: #c82333; }
+        button.success { background: #28a745; }
+        button.success:hover { background: #218838; }
+        .result {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        .result.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .result.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .result.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        .pc-list {
+            list-style: none;
+            padding: 0;
+        }
+        .pc-list li {
+            padding: 10px;
+            background: #f8f9fa;
+            margin: 5px 0;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🧪 Simple Test - DataManager</h1>
+        <p>ทดสอบการเพิ่ม PC อย่างง่าย</p>
+
+        <h2>📋 Tests</h2>
+        <button onclick="test1()">Test 1: Check DataManager</button>
+        <button onclick="test2()">Test 2: Add PC</button>
+        <button onclick="test3()">Test 3: List All PCs</button>
+        <button class="danger" onclick="test4()">Test 4: Delete Test PC</button>
+        <button class="success" onclick="test5()">Test 5: Full Workflow</button>
+
+        <h2>📊 Results</h2>
+        <div id="results"></div>
+
+        <h2>💻 Current Computers</h2>
+        <div id="pcList"></div>
+
+        <h2>🔧 Actions</h2>
+        <button class="danger" onclick="clearData()">Clear All Data</button>
+        <button onclick="refreshList()">Refresh List</button>
+    </div>
+
+    <script src="./prototype/js/config.js"></script>
+    <script src="./prototype/js/utils.js"></script>
+    <script src="./prototype/js/data-manager.js"></script>
+
+    <script>
+        function addResult(message, type = 'info') {
+            const div = document.getElementById('results');
+            const result = document.createElement('div');
+            result.className = `result ${type}`;
+            result.textContent = message;
+            div.appendChild(result);
+            console.log(message);
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+
+        // Test 1: Check DataManager
+        function test1() {
+            clearResults();
+            addResult('=== Test 1: Check DataManager ===', 'info');
+
+            try {
+                if (typeof DataManager === 'undefined') {
+                    throw new Error('DataManager is not defined');
+                }
+                addResult('✅ DataManager is available', 'success');
+
+                if (typeof DataManager.addComputer !== 'function') {
+                    throw new Error('DataManager.addComputer is not a function');
+                }
+                addResult('✅ DataManager.addComputer() exists', 'success');
+
+                addResult('✅ Test 1 PASSED', 'success');
+            } catch (error) {
+                addResult('❌ Test 1 FAILED: ' + error.message, 'error');
+            }
+        }
+
+        // Test 2: Add PC
+        function test2() {
+            clearResults();
+            addResult('=== Test 2: Add PC ===', 'info');
+
+            try {
+                const testPC = {
+                    id: 'PC-TEST-' + Date.now(),
+                    row: 'Z',
+                    number: 99,
+                    location: 'Z99',
+                    status: 'available',
+                    specs: 'Test PC',
+                    software: []
+                };
+
+                addResult('Adding PC: ' + testPC.id, 'info');
+
+                const result = DataManager.addComputer(testPC);
+
+                addResult('✅ PC Added: ' + result.id, 'success');
+                addResult('✅ Location: ' + result.location, 'success');
+                addResult('✅ Test 2 PASSED', 'success');
+
+                refreshList();
+            } catch (error) {
+                addResult('❌ Test 2 FAILED: ' + error.message, 'error');
+                console.error(error);
+            }
+        }
+
+        // Test 3: List All PCs
+        function test3() {
+            clearResults();
+            addResult('=== Test 3: List All PCs ===', 'info');
+
+            try {
+                const computers = getComputers();
+                addResult('Total PCs: ' + computers.length, 'success');
+
+                computers.slice(0, 5).forEach(pc => {
+                    addResult(`- ${pc.id} at ${pc.location} (${pc.status})`, 'info');
+                });
+
+                if (computers.length > 5) {
+                    addResult(`... and ${computers.length - 5} more`, 'info');
+                }
+
+                addResult('✅ Test 3 PASSED', 'success');
+                refreshList();
+            } catch (error) {
+                addResult('❌ Test 3 FAILED: ' + error.message, 'error');
+            }
+        }
+
+        // Test 4: Delete Test PC
+        function test4() {
+            clearResults();
+            addResult('=== Test 4: Delete Test PCs ===', 'info');
+
+            try {
+                const computers = getComputers();
+                const testPCs = computers.filter(pc => pc.id.startsWith('PC-TEST-'));
+
+                if (testPCs.length === 0) {
+                    addResult('No test PCs found', 'info');
+                    return;
+                }
+
+                testPCs.forEach(pc => {
+                    DataManager.deleteComputer(pc.id);
+                    addResult('✅ Deleted: ' + pc.id, 'success');
+                });
+
+                addResult(`✅ Test 4 PASSED (deleted ${testPCs.length} PCs)`, 'success');
+                refreshList();
+            } catch (error) {
+                addResult('❌ Test 4 FAILED: ' + error.message, 'error');
+            }
+        }
+
+        // Test 5: Full Workflow
+        function test5() {
+            clearResults();
+            addResult('=== Test 5: Full Workflow ===', 'info');
+
+            try {
+                // Step 1: Add PC
+                const testPC = {
+                    id: 'PC-WORKFLOW-' + Date.now(),
+                    row: 'W',
+                    number: 88,
+                    location: 'W88',
+                    status: 'available',
+                    specs: 'Workflow Test',
+                    software: []
+                };
+
+                addResult('Step 1: Adding PC...', 'info');
+                const added = DataManager.addComputer(testPC);
+                addResult('✅ Added: ' + added.id, 'success');
+
+                // Step 2: Update PC
+                addResult('Step 2: Updating PC...', 'info');
+                DataManager.updateComputer(testPC.id, {
+                    specs: 'Updated Workflow Test',
+                    notes: 'Test completed'
+                });
+                addResult('✅ Updated specs and notes', 'success');
+
+                // Step 3: Verify
+                addResult('Step 3: Verifying...', 'info');
+                const verified = getComputerById(testPC.id);
+                if (verified.specs !== 'Updated Workflow Test') {
+                    throw new Error('Update verification failed');
+                }
+                addResult('✅ Verification passed', 'success');
+
+                // Step 4: Delete
+                addResult('Step 4: Cleaning up...', 'info');
+                DataManager.deleteComputer(testPC.id);
+                addResult('✅ Deleted', 'success');
+
+                addResult('🎉 Test 5 PASSED - Full workflow completed!', 'success');
+                refreshList();
+            } catch (error) {
+                addResult('❌ Test 5 FAILED: ' + error.message, 'error');
+                console.error(error);
+            }
+        }
+
+        // Refresh PC List
+        function refreshList() {
+            const div = document.getElementById('pcList');
+
+            try {
+                const computers = getComputers();
+
+                if (computers.length === 0) {
+                    div.innerHTML = '<p>No computers found</p>';
+                    return;
+                }
+
+                const html = '<ul class="pc-list">' +
+                    computers.slice(0, 10).map(pc =>
+                        `<li>
+                            <span><strong>${pc.id}</strong> - ${pc.location || 'N/A'}</span>
+                            <span>${pc.status}</span>
+                        </li>`
+                    ).join('') +
+                    '</ul>' +
+                    (computers.length > 10 ? `<p>... and ${computers.length - 10} more</p>` : '');
+
+                div.innerHTML = html;
+            } catch (error) {
+                div.innerHTML = '<div class="result error">Error: ' + error.message + '</div>';
+            }
+        }
+
+        // Clear All Data
+        function clearData() {
+            if (confirm('ต้องการลบข้อมูลทั้งหมดหรือไม่?')) {
+                Object.values(CONFIG.STORAGE_KEYS).forEach(key => {
+                    localStorage.removeItem(key);
+                });
+                addResult('🗑️ All data cleared', 'success');
+                refreshList();
+            }
+        }
+
+        // Initialize
+        window.addEventListener('DOMContentLoaded', function() {
+            console.log('Page loaded');
+            console.log('DataManager:', typeof DataManager);
+            console.log('CONFIG:', typeof CONFIG);
+            console.log('getComputers:', typeof getComputers);
+            refreshList();
+        });
+    </script>
+</body>
+</html>
