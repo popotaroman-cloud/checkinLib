@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Computer Lab Check-in System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .hero {
+            text-align: center;
+            color: white;
+            margin-bottom: 3rem;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            opacity: 0.9;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+
+        .card-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .card h2 {
+            font-size: 1.5rem;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+
+        .card p {
+            color: #6b7280;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .card-links {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            text-align: center;
+            transition: opacity 0.3s;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .btn-outline {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-outline:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .features {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .features h3 {
+            font-size: 1.75rem;
+            color: #1f2937;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .feature-icon {
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .feature-text h4 {
+            color: #1f2937;
+            margin-bottom: 0.25rem;
+        }
+
+        .feature-text p {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 3rem;
+            opacity: 0.8;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .hero p {
+                font-size: 1rem;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="hero">
+            <h1>🖥️ Computer Lab Check-in System</h1>
+            <p>ระบบเช็คอินคอมพิวเตอร์สำหรับห้องปฏิบัติการคอมพิวเตอร์</p>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <div class="card-icon">👤</div>
+                <h2>สำหรับผู้ใช้งาน</h2>
+                <p>ระบบเช็คอิน-เช็คเอาท์ สำหรับนักศึกษา บุคลากร และบุคคลภายนอก</p>
+                <div class="card-links">
+                    <a href="prototype/user/idle.html?pc=PC-001" class="btn">เริ่มใช้งาน PC-001</a>
+                    <a href="prototype/user/select-type.html?pc=PC-015" class="btn btn-outline">เริ่มใช้งาน PC-015</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-icon">👨‍💼</div>
+                <h2>สำหรับผู้ดูแลระบบ</h2>
+                <p>จัดการระบบ ติดตามการใช้งาน และดูรายงานสถิติ</p>
+                <div class="card-links">
+                    <a href="prototype/admin/dashboard.html" class="btn">Dashboard</a>
+                    <a href="prototype/admin/monitor.html" class="btn btn-outline">Monitor</a>
+                    <a href="prototype/admin/reports.html" class="btn btn-outline">Reports</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="features">
+            <h3>✨ Features</h3>
+            <div class="feature-grid">
+                <div class="feature-item">
+                    <div class="feature-icon">✅</div>
+                    <div class="feature-text">
+                        <h4>Check-in ง่าย</h4>
+                        <p>ใช้รหัสนักศึกษาหรือบัตรประชาชน</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">⏱️</div>
+                    <div class="feature-text">
+                        <h4>จับเวลา Real-time</h4>
+                        <p>ติดตามเวลาใช้งานแบบเรียลไทม์</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">⭐</div>
+                    <div class="feature-text">
+                        <h4>ให้คะแนนความพึงพอใจ</h4>
+                        <p>รับฟีดแบ็คจากผู้ใช้งาน</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">📊</div>
+                    <div class="feature-text">
+                        <h4>Dashboard & Reports</h4>
+                        <p>ภาพรวมและสถิติการใช้งาน</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">🖥️</div>
+                    <div class="feature-text">
+                        <h4>Monitor แบบ Real-time</h4>
+                        <p>ดูสถานะเครื่องแบบ Map View</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">📥</div>
+                    <div class="feature-text">
+                        <h4>Import/Export CSV</h4>
+                        <p>นำเข้าการจองและส่งออกข้อมูล</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>🔗 <a href="https://github.com/popotaroman-cloud/checkinLib" style="color: white;">View on GitHub</a></p>
+            <p style="margin-top: 0.5rem;">📖 <a href="https://github.com/popotaroman-cloud/checkinLib#readme" style="color: white;">Documentation</a></p>
+        </div>
+    </div>
+</body>
+</html>
