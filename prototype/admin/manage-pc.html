@@ -202,20 +202,39 @@
         document.getElementById('pcForm').addEventListener('submit', function(e) {
             e.preventDefault();
 
-            const pcId = document.getElementById('pcId').value;
-            const location = document.getElementById('location').value;
+            const pcId = document.getElementById('pcId').value.trim();
+            const location = document.getElementById('location').value.trim();
             const status = document.getElementById('status').value;
+
+            console.log('Form submitted:', { pcId, location, status, editingPCId });
+
+            if (!pcId || !location) {
+                showAlert('กรุณากรอกข้อมูลให้ครบถ้วน', 'warning');
+                return;
+            }
 
             showLoading('กำลังบันทึก...');
 
             try {
                 if (editingPCId) {
                     // แก้ไข PC
-                    const [row, number] = location.split(/(\d+)/);
+                    const match = location.match(/^([A-Z]+)(\d+)$/i);
+                    let row, number;
+
+                    if (match) {
+                        row = match[1].toUpperCase();
+                        number = parseInt(match[2]);
+                    } else {
+                        row = location.charAt(0).toUpperCase();
+                        number = parseInt(location.substring(1)) || 1;
+                    }
+
+                    console.log('Updating computer:', { editingPCId, row, number, location });
+
                     DataManager.updateComputer(editingPCId, {
                         id: pcId,
-                        row: row || location.charAt(0),
-                        number: parseInt(number) || 1,
+                        row: row,
+                        number: number,
                         location: location,
                         status: status
                     });
@@ -224,17 +243,31 @@
                     showAlert('แก้ไขเครื่อง ' + pcId + ' สำเร็จ', 'success');
                 } else {
                     // เพิ่ม PC ใหม่
-                    const [row, number] = location.split(/(\d+)/);
-                    DataManager.addComputer({
+                    const match = location.match(/^([A-Z]+)(\d+)$/i);
+                    let row, number;
+
+                    if (match) {
+                        row = match[1].toUpperCase();
+                        number = parseInt(match[2]);
+                    } else {
+                        row = location.charAt(0).toUpperCase();
+                        number = parseInt(location.substring(1)) || 1;
+                    }
+
+                    console.log('Adding new computer:', { pcId, row, number, location, status });
+
+                    const newPC = DataManager.addComputer({
                         id: pcId,
-                        row: row || location.charAt(0),
-                        number: parseInt(number) || 1,
+                        row: row,
+                        number: number,
                         location: location,
                         status: status,
                         specs: 'N/A',
                         software: [],
                         notes: ''
                     });
+
+                    console.log('Computer added successfully:', newPC);
 
                     hideLoading();
                     showAlert('เพิ่มเครื่อง ' + pcId + ' สำเร็จ', 'success');
@@ -244,6 +277,7 @@
                 loadPCTable();
 
             } catch (error) {
+                console.error('Error saving computer:', error);
                 hideLoading();
                 showAlert('เกิดข้อผิดพลาด: ' + error.message, 'danger');
             }

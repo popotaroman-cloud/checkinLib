@@ -20,15 +20,25 @@ const DataManager = {
    * เพิ่มเครื่องคอมพิวเตอร์ใหม่
    */
   addComputer(computerData) {
+    console.log('[DataManager] addComputer called with:', computerData);
+
     const computers = getComputers();
+    console.log('[DataManager] Current computers count:', computers.length);
 
     // Validate
     if (!computerData.id || !computerData.row || !computerData.number) {
+      console.error('[DataManager] Validation failed:', {
+        hasId: !!computerData.id,
+        hasRow: !!computerData.row,
+        hasNumber: !!computerData.number
+      });
       throw new Error('กรุณากรอกข้อมูลให้ครบถ้วน');
     }
 
     // ตรวจสอบว่า ID ซ้ำหรือไม่
-    if (computers.find(pc => pc.id === computerData.id)) {
+    const duplicate = computers.find(pc => pc.id === computerData.id);
+    if (duplicate) {
+      console.error('[DataManager] Duplicate PC ID found:', duplicate);
       throw new Error(`PC ID ${computerData.id} มีอยู่ในระบบแล้ว`);
     }
 
@@ -36,6 +46,7 @@ const DataManager = {
       id: computerData.id,
       row: computerData.row,
       number: parseInt(computerData.number),
+      location: computerData.location || `${computerData.row}${computerData.number}`,
       status: computerData.status || 'available',
       specs: computerData.specs || 'N/A',
       software: computerData.software || [],
@@ -47,8 +58,12 @@ const DataManager = {
       updatedAt: new Date().toISOString()
     };
 
+    console.log('[DataManager] Creating new computer:', newComputer);
+
     computers.push(newComputer);
     saveComputers(computers);
+
+    console.log('[DataManager] Computer saved. New count:', computers.length);
 
     this.logAction('ADD_COMPUTER', { pcId: newComputer.id });
     return newComputer;
