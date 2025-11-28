@@ -3,7 +3,13 @@
     "allow": [
       "Bash(docker-compose:*)",
       "Bash(git init:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git remote add:*)",
+      "Bash(git push:*)",
+      "Bash(start file:///E:/FYPrj/checkinSys/prototype/test-add-pc.html)",
+      "Bash(start file:///E:/FYPrj/checkinSys/run-tests.html)",
+      "Bash(start file:///E:/FYPrj/checkinSys/simple-test.html)"
     ],
     "deny": [],
     "ask": []
