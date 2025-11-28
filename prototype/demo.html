@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo - Data Manager & Session Manager</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/common.css">
+    <style>
+        body {
+            padding: 2rem;
+            background: #f5f5f5;
+        }
+
+        .demo-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .demo-header {
+            background: white;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .demo-header h1 {
+            margin: 0 0 0.5rem 0;
+            color: var(--primary);
+        }
+
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .demo-card {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .demo-card h3 {
+            margin: 0 0 1rem 0;
+            color: var(--text-primary);
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 0.5rem;
+        }
+
+        .demo-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .console-output {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 1rem;
+        }
+
+        .console-output .log {
+            margin: 0.25rem 0;
+        }
+
+        .console-output .log.success { color: #4ec9b0; }
+        .console-output .log.error { color: #f48771; }
+        .console-output .log.info { color: #9cdcfe; }
+        .console-output .log.warning { color: #dcdcaa; }
+
+        .stats-display {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .stats-display h4 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1rem;
+        }
+
+        .stats-display .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.25rem 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .stats-display .stat-item:last-child {
+            border-bottom: none;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-header">
+            <h1>🧪 Demo - Data Manager & Session Manager</h1>
+            <p>ทดสอบฟังก์ชันการบันทึกข้อมูลและจัดการ Session</p>
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="clearConsole()">Clear Console</button>
+                <button class="btn btn-outline" onclick="location.reload()">Refresh Page</button>
+                <a href="admin/dashboard.html" class="btn btn-success">ไปหน้า Admin</a>
+                <a href="user/idle.html?pc=PC-001" class="btn btn-success">ไปหน้า User</a>
+            </div>
+        </div>
+
+        <!-- Console Output -->
+        <div class="demo-card" style="grid-column: 1 / -1;">
+            <h3>📋 Console Output</h3>
+            <div id="consoleOutput" class="console-output">
+                <div class="log info">Ready to test...</div>
+            </div>
+        </div>
+
+        <div class="demo-grid">
+            <!-- Computer Management -->
+            <div class="demo-card">
+                <h3>💻 Computer Management</h3>
+                <div class="demo-buttons">
+                    <button class="btn btn-primary" onclick="testAddComputer()">
+                        ➕ Add Computer
+                    </button>
+                    <button class="btn btn-primary" onclick="testUpdateComputer()">
+                        ✏️ Update Computer
+                    </button>
+                    <button class="btn btn-warning" onclick="testSetMaintenance()">
+                        🔧 Set Maintenance
+                    </button>
+                    <button class="btn btn-outline" onclick="showAllComputers()">
+                        📋 Show All (Console)
+                    </button>
+                </div>
+                <div id="computerStats" class="stats-display" style="display:none;"></div>
+            </div>
+
+            <!-- Software Management -->
+            <div class="demo-card">
+                <h3>📦 Software Management</h3>
+                <div class="demo-buttons">
+                    <button class="btn btn-primary" onclick="testAddSoftware()">
+                        ➕ Add Software
+                    </button>
+                    <button class="btn btn-primary" onclick="testInstallSoftware()">
+                        💾 Install on PC
+                    </button>
+                    <button class="btn btn-outline" onclick="showAllSoftware()">
+                        📋 Show All (Console)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Reservation Management -->
+            <div class="demo-card">
+                <h3>📅 Reservation Management</h3>
+                <div class="demo-buttons">
+                    <button class="btn btn-primary" onclick="testAddReservation()">
+                        ➕ Add Reservation
+                    </button>
+                    <button class="btn btn-danger" onclick="testCancelReservation()">
+                        ❌ Cancel Reservation
+                    </button>
+                    <button class="btn btn-outline" onclick="showAllReservations()">
+                        📋 Show All (Console)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Session Management -->
+            <div class="demo-card">
+                <h3>⏱️ Session Management</h3>
+                <div class="demo-buttons">
+                    <button class="btn btn-success" onclick="testStartSession()">
+                        ▶️ Start Session
+                    </button>
+                    <button class="btn btn-danger" onclick="testEndSession()">
+                        ⏹️ End Session
+                    </button>
+                    <button class="btn btn-outline" onclick="testGetSessionInfo()">
+                        ℹ️ Get Session Info
+                    </button>
+                </div>
+                <div id="sessionInfo" class="stats-display" style="display:none;"></div>
+            </div>
+
+            <!-- Statistics & Reports -->
+            <div class="demo-card">
+                <h3>📊 Statistics & Reports</h3>
+                <div class="demo-buttons">
+                    <button class="btn btn-primary" onclick="testGetStatistics()">
+                        📈 Session Statistics
+                    </button>
+                    <button class="btn btn-primary" onclick="testGetPCStats()">
+                        💻 PC Statistics
+                    </button>
+                    <button class="btn btn-primary" onclick="testFilterLogs()">
+                        🔍 Filter Logs
+                    </button>
+                </div>
+            </div>
+
+            <!-- Data Management -->
+            <div class="demo-card">
+                <h3>💾 Data Management</h3>
+                <div class="demo-buttons">
+                    <button class="btn btn-success" onclick="testExportData()">
+                        📥 Export All Data
+                    </button>
+                    <button class="btn btn-warning" onclick="testValidateData()">
+                        ✅ Validate Data
+                    </button>
+                    <button class="btn btn-warning" onclick="testRepairData()">
+                        🔧 Repair Data
+                    </button>
+                    <button class="btn btn-danger" onclick="testResetData()">
+                        🔄 Reset to Mock Data
+                    </button>
+                </div>
+            </div>
+
+            <!-- Complete Workflow -->
+            <div class="demo-card" style="grid-column: 1 / -1;">
+                <h3>🎯 Complete Workflow Test</h3>
+                <p>ทดสอบ Workflow สมบูรณ์: Check-in → Use → Check-out</p>
+                <div class="demo-buttons">
+                    <button class="btn btn-success btn-lg" onclick="testCompleteWorkflow()">
+                        ▶️ Run Complete Workflow
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/data-manager.js"></script>
+    <script src="js/session-manager.js"></script>
+    <script src="js/usage-examples.js"></script>
+
+    <script>
+        // Console logging
+        function logToConsole(message, type = 'info') {
+            const output = document.getElementById('consoleOutput');
+            const log = document.createElement('div');
+            log.className = `log ${type}`;
+            log.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            output.appendChild(log);
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function clearConsole() {
+            document.getElementById('consoleOutput').innerHTML = '<div class="log info">Console cleared...</div>';
+        }
+
+        // Override console methods
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+
+        console.log = function(...args) {
+            logToConsole(args.join(' '), 'info');
+            originalLog.apply(console, args);
+        };
+
+        console.error = function(...args) {
+            logToConsole(args.join(' '), 'error');
+            originalError.apply(console, args);
+        };
+
+        console.warn = function(...args) {
+            logToConsole(args.join(' '), 'warning');
+            originalWarn.apply(console, args);
+        };
+
+        // Test functions
+        function testAddComputer() {
+            Examples.addComputer();
+        }
+
+        function testUpdateComputer() {
+            Examples.updateComputer();
+        }
+
+        function testSetMaintenance() {
+            Examples.setMaintenance();
+        }
+
+        function showAllComputers() {
+            const computers = getComputers();
+            console.log('💻 All Computers:', computers);
+        }
+
+        function testAddSoftware() {
+            Examples.addSoftware();
+        }
+
+        function testInstallSoftware() {
+            Examples.installSoftware();
+        }
+
+        function showAllSoftware() {
+            const software = DataManager.getSoftwareList();
+            console.log('📦 All Software:', software);
+        }
+
+        function testAddReservation() {
+            Examples.addReservation();
+        }
+
+        function testCancelReservation() {
+            const reservations = getReservations();
+            if (reservations.length > 0) {
+                Examples.cancelReservation();
+            } else {
+                showAlert('ไม่มีการจองในระบบ', 'warning');
+            }
+        }
+
+        function showAllReservations() {
+            const reservations = getReservations();
+            console.log('📅 All Reservations:', reservations);
+        }
+
+        function testStartSession() {
+            Examples.startSession();
+            setTimeout(() => {
+                updateSessionInfoDisplay();
+            }, 1000);
+        }
+
+        function testEndSession() {
+            Examples.endSession();
+            updateSessionInfoDisplay();
+        }
+
+        function testGetSessionInfo() {
+            Examples.getSessionInfo();
+            updateSessionInfoDisplay();
+        }
+
+        function updateSessionInfoDisplay() {
+            const info = SessionManager.getSessionInfo();
+            const div = document.getElementById('sessionInfo');
+
+            if (info) {
+                div.style.display = 'block';
+                div.innerHTML = `
+                    <h4>Current Session</h4>
+                    <div class="stat-item"><span>ผู้ใช้:</span><strong>${info.userName}</strong></div>
+                    <div class="stat-item"><span>PC:</span><strong>${info.pcId}</strong></div>
+                    <div class="stat-item"><span>ใช้ไปแล้ว:</span><strong>${info.elapsed.formatted}</strong></div>
+                    <div class="stat-item"><span>เหลือเวลา:</span><strong>${info.remaining.formatted}</strong></div>
+                    <div class="stat-item"><span>Progress:</span><strong>${info.percentComplete.toFixed(1)}%</strong></div>
+                `;
+            } else {
+                div.style.display = 'none';
+            }
+        }
+
+        function testGetStatistics() {
+            Examples.getStatistics();
+        }
+
+        function testGetPCStats() {
+            Examples.getPCStats();
+        }
+
+        function testFilterLogs() {
+            Examples.filterLogs();
+        }
+
+        function testExportData() {
+            Examples.exportData();
+        }
+
+        function testValidateData() {
+            Examples.validateData();
+        }
+
+        function testRepairData() {
+            Examples.repairData();
+        }
+
+        function testResetData() {
+            if (confirm('ต้องการ Reset ข้อมูลทั้งหมดกลับเป็น Mock Data หรือไม่?')) {
+                DataManager.resetToMockData();
+            }
+        }
+
+        function testCompleteWorkflow() {
+            Examples.completeWorkflow();
+        }
+
+        // Initialize
+        console.log('🚀 Demo page loaded!');
+        console.log('📚 Available: DataManager, SessionManager, Examples');
+    </script>
+</body>
+</html>
