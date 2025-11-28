@@ -47,6 +47,43 @@
 - **Design:** Mobile-first Responsive Design
 - **No Backend Required** - Pure Client-side Application
 
+## 🔥 New Features - Data Management System
+
+### JavaScript Modules
+📦 **[data-manager.js](prototype/js/data-manager.js)** - Complete CRUD operations
+- Computer management (add/edit/delete/maintenance)
+- Software management (install/uninstall)
+- Reservation management (add/cancel/complete)
+- External user management
+- Data validation & auto-repair
+- Export/Import functionality
+- Audit trail logging
+
+⏱️ **[session-manager.js](prototype/js/session-manager.js)** - Real-time session handling
+- Session tracking with real-time timer
+- Auto-warning before timeout
+- Auto-logout capability
+- Session extension
+- Unload protection
+- Session statistics
+
+📚 **[usage-examples.js](prototype/js/usage-examples.js)** - Ready-to-use examples
+- Pre-built code examples for all functions
+- Console testing utilities
+- Complete workflow demonstrations
+
+### 🧪 Demo & Testing
+- **[Interactive Demo Page](https://popotaroman-cloud.github.io/checkinLib/prototype/demo.html)** - Test all features
+- **[JavaScript Documentation](prototype/js/README.md)** - Complete API reference
+
+### Quick Test
+Open browser console on any page and try:
+```javascript
+Examples.completeWorkflow();  // Test complete check-in flow
+Examples.getStatistics();      // View usage statistics
+DataManager.exportAllData();   // Export all data
+```
+
 ## 📊 Mock Data
 
 ระบบมี Mock Data พร้อมใช้งาน:
@@ -97,7 +134,11 @@ checkinLib/
 │   └── js/
 │       ├── config.js         # Mock data & configuration
 │       ├── utils.js          # Utility functions
-│       └── admin-dashboard.js # Admin functions
+│       ├── data-manager.js   # Data CRUD operations
+│       ├── session-manager.js # Session management
+│       ├── usage-examples.js # Code examples
+│       ├── admin-dashboard.js # Admin functions
+│       └── README.md         # JavaScript documentation
 └── README.md
 ```
 
