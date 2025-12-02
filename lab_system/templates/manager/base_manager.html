@@ -1,0 +1,71 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Manager - Lab System{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/common.css' %}">
+    <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="admin-mode">
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar">
+        <h2><i class="fas fa-server"></i> Lab Admin</h2>
+        <ul class="nav-links">
+            <li><a href="{% url 'dashboard' %}" {% if request.resolver_match.url_name == 'dashboard' %}class="active"{% endif %}>
+                <i class="fas fa-th-large"></i> Dashboard
+            </a></li>
+            <li><a href="{% url 'manage' %}" {% if request.resolver_match.url_name == 'manage' %}class="active"{% endif %}>
+                <i class="fas fa-desktop"></i> จัดการเครื่อง
+            </a></li>
+            <li><a href="{% url 'manage_software' %}" {% if request.resolver_match.url_name == 'manage_software' %}class="active"{% endif %}>
+                <i class="fas fa-box"></i> จัดการซอฟต์แวร์
+            </a></li>
+            <li><a href="{% url 'report' %}" {% if request.resolver_match.url_name == 'report' %}class="active"{% endif %}>
+                <i class="fas fa-chart-line"></i> รายงานสถิติ
+            </a></li>
+
+            <!-- User Info & Actions -->
+            <li style="margin-top: auto; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                <div style="color: #fff; font-size: 0.85rem; margin-bottom: 10px;">
+                    <i class="fas fa-user-circle"></i> <strong>{{ request.user.username }}</strong>
+                    <br>
+                    <span style="color: #aaa; font-size: 0.75rem;">
+                        {% if request.user.is_superuser %}
+                            <i class="fas fa-crown"></i> Superuser
+                        {% elif request.user.is_staff %}
+                            <i class="fas fa-user-shield"></i> Staff
+                        {% endif %}
+                    </span>
+                </div>
+            </li>
+
+            <li>
+                <a href="{% url 'index' %}" style="background: rgba(255,255,255,0.1);">
+                    <i class="fas fa-home"></i> กลับหน้า Kiosk
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'manager_logout' %}" style="background: rgba(255,59,48,0.8);"
+                   onclick="return confirm('คุณต้องการออกจากระบบหรือไม่?')">
+                    <i class="fas fa-sign-out-alt"></i> ออกจากระบบ
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="{% static 'js/script.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

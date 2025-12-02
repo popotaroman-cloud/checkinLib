@@ -1,0 +1,228 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}รายงานสถิติ - Lab Admin{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+{% endblock %}
+
+{% block body_class %}admin-mode{% endblock %}
+
+{% block content %}
+    <nav class="sidebar">
+        <h2><i class="fas fa-server"></i> Lab Admin</h2>
+        <ul class="nav-links">
+            <li><a href="{% url 'dashboard' %}"><i class="fas fa-th-large"></i> Dashboard</a></li>
+            <li><a href="{% url 'manage' %}"><i class="fas fa-desktop"></i> จัดการเครื่อง</a></li>
+            <li><a href="{% url 'manage_software' %}"><i class="fas fa-box"></i> จัดการซอฟต์แวร์</a></li>
+            <li><a href="{% url 'report' %}" class="active"><i class="fas fa-chart-line"></i> รายงานสถิติ</a></li>
+            <li style="margin-top: auto;">
+                <a href="{% url 'index' %}" style="background: rgba(255,255,255,0.1);">
+                    <i class="fas fa-sign-out-alt"></i> กลับหน้า Kiosk
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <main class="main-content">
+        <div class="header-bar">
+            <h1>รายงานสรุปการใช้งาน</h1>
+            <a href="{% url 'export_csv' %}?start_date={{ start_date }}&end_date={{ end_date }}&user_type={{ user_type_filter }}" class="btn btn-primary" style="background-color: var(--success);">
+                <i class="fas fa-file-csv"></i> ดาวน์โหลด CSV ({{ total_logs|default:"ทั้งหมด" }} รายการ)
+            </a>
+        </div>
+
+        <div class="card">
+            <form method="GET" action="{% url 'report' %}" style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 200px;">
+                    <label class="form-label">ตั้งแต่วันที่</label>
+                    <input type="date" name="start_date" class="form-control" value="{{ start_date }}">
+                </div>
+                <div style="flex: 1; min-width: 200px;">
+                    <label class="form-label">ถึงวันที่</label>
+                    <input type="date" name="end_date" class="form-control" value="{{ end_date }}">
+                </div>
+                <div style="flex: 1; min-width: 200px;">
+                    <label class="form-label">ประเภทผู้ใช้</label>
+                    <select name="user_type" class="form-control">
+                        <option value="all" {% if user_type_filter == 'all' %}selected{% endif %}>ทั้งหมด</option>
+                        <option value="student" {% if user_type_filter == 'student' %}selected{% endif %}>นักศึกษา</option>
+                        <option value="staff" {% if user_type_filter == 'staff' %}selected{% endif %}>เจ้าหน้าที่</option>
+                        <option value="external" {% if user_type_filter == 'external' %}selected{% endif %}>บุคคลภายนอก</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search"></i> แสดงผล
+                </button>
+                <a href="{% url 'report' %}" class="btn" style="background: var(--secondary-color);">
+                    <i class="fas fa-redo"></i> รีเซ็ต
+                </a>
+            </form>
+        </div>
+
+        {% if total_logs > 0 %}
+        <div class="card" style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white;">
+            <h3 style="margin: 0; font-size: 1rem;">สถิติจากข้อมูลที่กรอง</h3>
+            <div style="display: flex; gap: 30px; margin-top: 10px; flex-wrap: wrap;">
+                <div>
+                    <div style="font-size: 2rem; font-weight: bold;">{{ total_logs }}</div>
+                    <div style="opacity: 0.9;">รายการทั้งหมด</div>
+                </div>
+                <div>
+                    <div style="font-size: 2rem; font-weight: bold;">{{ avg_rating }}</div>
+                    <div style="opacity: 0.9;">คะแนนเฉลี่ย / 5.0</div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
+            <div class="card">
+                <h3>สัดส่วนผู้ใช้งาน</h3>
+                <canvas id="userTypeChart" style="max-height: 250px;"></canvas>
+            </div>
+            <div class="card">
+                <h3>ความพึงพอใจเฉลี่ย</h3>
+                <canvas id="ratingChart" style="max-height: 250px;"></canvas>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>ประวัติการใช้งานล่าสุด (50 รายการ)</h3>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>เวลาเข้า</th>
+                            <th>ผู้ใช้งาน</th>
+                            <th>เครื่อง</th>
+                            <th>ระยะเวลา</th>
+                            <th>คะแนน</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in logs %}
+                        <tr>
+                            <td>{{ log.checkin_time|date:"d M Y H:i" }}</td>
+                            <td>
+                                <div><b>{{ log.user_name }}</b></div>
+                                <small style="color: #666;">{{ log.get_user_type_display }}</small>
+                            </td>
+                            <td><span class="badge" style="background-color: var(--secondary-color);">{{ log.pc }}</span></td>
+                            <td>
+                                {% if log.checkout_time %}
+                                    {{ log.duration_minutes }} นาที
+                                {% else %}
+                                    <span style="color: var(--success);">กำลังใช้งาน</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if log.rating > 0 %}
+                                    <span style="color: var(--warning);">
+                                        <i class="fas fa-star"></i> {{ log.rating }}
+                                    </span>
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center">ยังไม่มีประวัติการใช้งาน</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Chart: User Types (Doughnut)
+            const ctx1 = document.getElementById('userTypeChart').getContext('2d');
+
+            const studentCount = {{ student_count }};
+            const staffCount = {{ staff_count }};
+            const externalCount = {{ external_count }};
+            const totalUsers = studentCount + staffCount + externalCount;
+
+            // ถ้าไม่มีข้อมูล แสดงข้อความ
+            if (totalUsers === 0) {
+                const canvas = document.getElementById('userTypeChart');
+                const parent = canvas.parentElement;
+                parent.innerHTML = '<p style="text-align: center; color: #999; padding: 50px 0;">ไม่มีข้อมูล</p>';
+            } else {
+                new Chart(ctx1, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['นักศึกษา', 'เจ้าหน้าที่', 'บุคคลภายนอก'],
+                        datasets: [{
+                            data: [studentCount, staffCount, externalCount],
+                            backgroundColor: ['#0d6efd', '#198754', '#ffc107'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+            }
+
+            // 2. Chart: Ratings (Bar)
+            const ctx2 = document.getElementById('ratingChart').getContext('2d');
+
+            const rating5 = {{ rating_5 }};
+            const rating4 = {{ rating_4 }};
+            const rating3 = {{ rating_3 }};
+            const rating2 = {{ rating_2 }};
+            const rating1 = {{ rating_1 }};
+            const totalRatings = rating5 + rating4 + rating3 + rating2 + rating1;
+
+            // ถ้าไม่มีข้อมูลคะแนน
+            if (totalRatings === 0) {
+                const canvas = document.getElementById('ratingChart');
+                const parent = canvas.parentElement;
+                parent.innerHTML = '<p style="text-align: center; color: #999; padding: 50px 0;">ไม่มีข้อมูลคะแนน</p>';
+            } else {
+                new Chart(ctx2, {
+                    type: 'bar',
+                    data: {
+                        labels: ['5 ดาว', '4 ดาว', '3 ดาว', '2 ดาว', '1 ดาว'],
+                        datasets: [{
+                            label: 'จำนวนคนโหวต',
+                            data: [rating5, rating4, rating3, rating2, rating1],
+                            backgroundColor: '#0d6efd',
+                            borderRadius: 5
+                        }]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 1
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Check-in - {{ pc.pc_id }}{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/kiosk.css' %}">
+{% endblock %}
+
+{% block body_class %}kiosk-mode{% endblock %}
+
+{% block content %}
+<div class="kiosk-container" style="max-width: 600px;">
+    <h2 class="kiosk-title">ลงชื่อเข้าใช้งาน</h2>
+    <p class="mb-2">เครื่อง: <b>{{ pc.pc_id }}</b></p>
+    
+    <div class="tab-nav">
+        <button class="tab-btn active" onclick="openTab('internal')">
+            <i class="fas fa-id-card"></i> นักศึกษา / บุคลากร
+        </button>
+        <button class="tab-btn" onclick="openTab('external')">
+            <i class="fas fa-user-tag"></i> บุคคลภายนอก
+        </button>
+    </div>
+
+    <div id="internal-tab" class="form-section">
+        <form method="POST" action="{% url 'checkin' pc.pc_id %}">
+            {% csrf_token %}
+            <input type="hidden" name="user_type" value="internal">
+
+            <div class="form-group" style="text-align: left;">
+                <label class="form-label">รหัสนักศึกษา / รหัสบุคลากร</label>
+                <input type="text" name="user_id" class="form-control" placeholder="เช่น 6601xxxx หรือรหัสพนักงาน" required autofocus>
+                <small style="color: var(--text-muted); font-size: 0.8rem;">
+                    *ระบบจะดึงข้อมูลจาก UBU API และแยกประเภทให้อัตโนมัติ
+                </small>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg mt-2">
+                <i class="fas fa-sign-in-alt"></i> ยืนยันเข้าใช้งาน
+            </button>
+        </form>
+    </div>
+
+    <div id="external-tab" class="form-section hidden">
+        <form method="POST" action="{% url 'checkin' pc.pc_id %}">
+            {% csrf_token %}
+            <input type="hidden" name="user_type" value="external">
+            
+            <div class="form-group" style="text-align: left;">
+                <label class="form-label">เลขบัตรประจำตัวประชาชน</label>
+                <input type="text" name="id_card" class="form-control" placeholder="เลข 13 หลัก" required>
+            </div>
+            
+            <div class="form-group" style="text-align: left;">
+                <label class="form-label">ชื่อ - นามสกุล</label>
+                <input type="text" name="full_name" class="form-control" required>
+            </div>
+            
+            <div class="form-group" style="text-align: left;">
+                <label class="form-label">หน่วยงาน</label>
+                <input type="text" name="organization" class="form-control" required>
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-lg mt-2">
+                <i class="fas fa-sign-in-alt"></i> ลงทะเบียนเข้าใช้ (Guest)
+            </button>
+        </form>
+    </div>
+
+    <a href="{% url 'index' %}?pc_id={{ pc.pc_id }}" class="btn btn-outline btn-lg mt-2" style="display: block; width: 100%;">
+        ยกเลิก
+    </a>
+</div>
+
+<script src="{% static 'js/script.js' %}"></script>
+{% endblock %}

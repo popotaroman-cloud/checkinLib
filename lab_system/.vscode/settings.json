@@ -1,0 +1,58 @@
+{
+    // Python Configuration
+    "python.defaultInterpreterPath": "${workspaceFolder}\\venv\\Scripts\\python.exe",
+    "python.terminal.activateEnvironment": true,
+
+    // Django Configuration
+    "python.languageServer": "Pylance",
+    "python.analysis.typeCheckingMode": "basic",
+    "python.analysis.extraPaths": [
+        "${workspaceFolder}"
+    ],
+
+    // Auto-completion for Django
+    "python.autoComplete.extraPaths": [
+        "${workspaceFolder}"
+    ],
+
+    // Linting
+    "python.linting.enabled": true,
+    "python.linting.pylintEnabled": false,
+    "python.linting.flake8Enabled": false,
+
+    // Formatting
+    "python.formatting.provider": "none",
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.python",
+        "editor.formatOnSave": false,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit"
+        }
+    },
+
+    // Django Template Files
+    "files.associations": {
+        "*.html": "html",
+        "**/templates/**/*.html": "django-html",
+        "**/templates/**": "django-txt",
+        "**/requirements{/**,*}.{txt,in}": "pip-requirements"
+    },
+
+    "emmet.includeLanguages": {
+        "django-html": "html"
+    },
+
+    // Exclude folders
+    "files.exclude": {
+        "**/__pycache__": true,
+        "**/*.pyc": true,
+        "**/.pytest_cache": true,
+        "**/instance": true,
+        "**/staticfiles": true
+    },
+
+    // Terminal
+    "terminal.integrated.env.windows": {
+        "DJANGO_SETTINGS_MODULE": "lab_system.settings"
+    }
+}

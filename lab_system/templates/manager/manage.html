@@ -1,0 +1,543 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}จัดการเครื่อง - Lab Admin{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+{% endblock %}
+
+{% block body_class %}admin-mode{% endblock %}
+
+{% block content %}
+    <nav class="sidebar">
+        <h2><i class="fas fa-server"></i> Lab Admin</h2>
+        <ul class="nav-links">
+            <li><a href="{% url 'dashboard' %}"><i class="fas fa-th-large"></i> Dashboard</a></li>
+            <li><a href="{% url 'manage' %}" class="active"><i class="fas fa-desktop"></i> จัดการเครื่อง</a></li>
+            <li><a href="{% url 'manage_software' %}"><i class="fas fa-box"></i> จัดการ Software ประจำเครื่อง</a></li>
+            <li><a href="{% url 'report' %}"><i class="fas fa-chart-line"></i> รายงานสถิติ</a></li>
+            <li style="margin-top: auto;">
+                <a href="{% url 'index' %}" style="background: rgba(255,255,255,0.1);">
+                    <i class="fas fa-sign-out-alt"></i> กลับหน้า Kiosk
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <main class="main-content">
+        <div class="header-bar">
+            <h1>จัดการข้อมูลเครื่องและ Software ประจำเครื่อง</h1>
+            <div>
+                <button class="btn btn-outline" onclick="Swal.fire('Info', 'ฟีเจอร์สร้าง QR ทั้งหมด', 'info')">
+                    <i class="fas fa-qrcode"></i> QR Code ทั้งหมด
+                </button>
+                <button class="btn btn-primary" onclick="Swal.fire('Info', 'ฟีเจอร์นำเข้า CSV กำลังพัฒนา', 'info')">
+                    <i class="fas fa-file-import"></i> นำเข้าการจอง
+                </button>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+
+            <div class="card" style="flex: 2; min-width: 300px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="margin: 0;">รายชื่อเครื่องคอมพิวเตอร์ ({{ computers.count }})</h3>
+                    <button class="btn btn-success" onclick="showAddComputerModal()" style="background: #28a745; padding: 8px 16px;">
+                        <i class="fas fa-plus"></i> เพิ่มเครื่อง
+                    </button>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>PC ID</th>
+                                <th>ชื่อผู้ใช้งาน</th>
+                                <th>สถานะปัจจุบัน</th>
+                                <th>Software ประจำเครื่อง</th>
+                                <th>จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for pc in computers %}
+                            <tr data-pc-id="{{ pc.pc_id }}">
+                                <td class="editable-cell" data-field="pc_id"><b>{{ pc.pc_id }}</b></td>
+                                <td class="editable-cell" data-field="current_user">{{ pc.status_info.current_user_name|default:"-" }}</td>
+                                <td class="editable-cell" data-field="status">
+                                    {% if pc.status_info.status == 'available' %}
+                                        <span class="badge available">ว่าง</span>
+                                    {% elif pc.status_info.status == 'in_use' %}
+                                        <span class="badge occupied">ใช้งาน</span>
+                                    {% else %}
+                                        <span class="badge maintenance">ซ่อม</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <small style="color: #666;">
+                                        {{ pc.status_info.software|default:"-" }}
+                                    </small>
+                                </td>
+                                <td>
+                                    <button onclick="toggleEdit(this, '{{ pc.pc_id }}')" class="btn btn-outline edit-btn" style="padding: 5px 10px; font-size: 0.8rem;">
+                                        <i class="fas fa-edit"></i> <span class="btn-text">แก้ไข</span>
+                                    </button>
+                                    <button onclick="confirmDelete('{{ pc.pc_id }}')" class="btn btn-outline" style="padding: 5px 10px; font-size: 0.8rem; color: #dc3545; border-color: #dc3545;">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="5" class="text-center">ไม่พบข้อมูลเครื่อง</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card" style="flex: 1; min-width: 250px; height: fit-content;">
+                <h3><i class="fas fa-plus-circle"></i> ติดตั้ง Software ประจำเครื่องด่วน</h3>
+                <p style="color: #666; font-size: 0.9rem; margin-bottom: 15px;">เลือกเครื่องและโปรแกรมที่ต้องการติดตั้ง</p>
+
+                <form id="installSoftwareForm" onsubmit="event.preventDefault(); handleInstallSoftware();">
+                    <div class="form-group">
+                        <label class="form-label">เลือกเครื่อง (PC ID)</label>
+                        <select id="pc_selection" class="form-control">
+                            <option value="all">ทุกเครื่อง (All)</option>
+                            {% for pc in computers %}
+                                <option value="{{ pc.pc_id }}">{{ pc.pc_id }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">เลือก Software ประจำเครื่อง</label>
+                        <select id="software_id" class="form-control">
+                            <option value="">-- กรุณาเลือก Software --</option>
+                            {% for software in software_list %}
+                                <option value="{{ software.id }}">
+                                    {{ software.name }}{% if software.version %} ({{ software.version }}){% endif %}
+                                </option>
+                            {% empty %}
+                                <option value="" disabled>ไม่มีข้อมูล Software ในระบบ</option>
+                            {% endfor %}
+                        </select>
+                        <small style="color: #666; display: block; margin-top: 8px; font-size: 0.8rem;">
+                            * การติดตั้งใหม่จะแทนที่โปรแกรมเดิมทันที
+                        </small>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">
+                        <i class="fas fa-save"></i> บันทึกการเปลี่ยนแปลง
+                    </button>
+                </form>
+            </div>
+
+        </div>
+    </main>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Get CSRF token from cookies
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+const csrftoken = getCookie('csrftoken');
+
+// ฟังก์ชันแสดง Modal เพิ่มเครื่อง
+function showAddComputerModal() {
+    Swal.fire({
+        title: 'เพิ่มเครื่องคอมพิวเตอร์ใหม่',
+        html: `
+            <div style="text-align: left; padding: 0 20px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: 500;">PC ID (เช่น PC-01) <span style="color: red;">*</span></label>
+                <input id="pc_id" class="swal2-input" placeholder="PC-XX" style="margin: 0 0 15px 0; width: 100%;">
+
+                <label style="display: block; margin-bottom: 5px; font-weight: 500;">สถานะเริ่มต้น</label>
+                <select id="status" class="swal2-input" style="margin: 0; width: 100%;">
+                    <option value="available">ว่าง (Available)</option>
+                    <option value="disabled">ปิดปรับปรุง (Disabled)</option>
+                </select>
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'เพิ่มเครื่อง',
+        confirmButtonColor: '#28a745',
+        cancelButtonText: 'ยกเลิก',
+        preConfirm: () => {
+            const pcId = document.getElementById('pc_id').value.trim();
+            const status = document.getElementById('status').value;
+
+            if (!pcId) {
+                Swal.showValidationMessage('กรุณาระบุ PC ID');
+                return false;
+            }
+
+            // Send AJAX request
+            return fetch('{% url "add_computer" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': csrftoken
+                },
+                body: new URLSearchParams({
+                    'pc_id': pcId,
+                    'status': status
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    throw new Error(data.message);
+                }
+                return data;
+            })
+            .catch(error => {
+                Swal.showValidationMessage(error.message);
+            });
+        },
+        allowOutsideClick: () => !Swal.isLoading()
+    }).then((result) => {
+        if (result.isConfirmed) {
+            Swal.fire({
+                icon: 'success',
+                title: 'สำเร็จ!',
+                text: result.value.message,
+                confirmButtonColor: '#28a745'
+            }).then(() => {
+                location.reload();
+            });
+        }
+    });
+}
+
+// ฟังก์ชันสลับโหมดแก้ไข
+function toggleEdit(button, pcId) {
+    const row = button.closest('tr');
+    const isEditing = row.classList.contains('editing');
+
+    if (!isEditing) {
+        // เข้าสู่โหมดแก้ไข
+        row.classList.add('editing');
+
+        // PC ID
+        const pcIdCell = row.querySelector('[data-field="pc_id"]');
+        const currentPcId = pcIdCell.querySelector('b').textContent;
+        pcIdCell.innerHTML = `<input type="text" class="form-control" value="${currentPcId}" data-original="${currentPcId}" style="padding: 5px; font-size: 0.9rem;">`;
+
+        // ชื่อผู้ใช้งาน (read-only, ไม่ให้แก้ไข)
+        const userCell = row.querySelector('[data-field="current_user"]');
+        const currentUser = userCell.textContent.trim();
+        userCell.innerHTML = `<input type="text" class="form-control" value="${currentUser}" readonly style="padding: 5px; font-size: 0.9rem; background-color: #f5f5f5; cursor: not-allowed;">`;
+
+        // Status
+        const statusCell = row.querySelector('[data-field="status"]');
+        const currentStatus = statusCell.querySelector('.badge').classList.contains('available') ? 'available' :
+                             statusCell.querySelector('.badge').classList.contains('occupied') ? 'in_use' : 'disabled';
+        statusCell.innerHTML = `
+            <select class="form-control" data-original="${currentStatus}" style="padding: 5px; font-size: 0.9rem;">
+                <option value="available" ${currentStatus === 'available' ? 'selected' : ''}>ว่าง</option>
+                <option value="in_use" ${currentStatus === 'in_use' ? 'selected' : ''}>ใช้งาน</option>
+                <option value="disabled" ${currentStatus === 'disabled' ? 'selected' : ''}>ซ่อม</option>
+            </select>
+        `;
+
+        // เปลี่ยนปุ่มเป็น "บันทึก"
+        button.innerHTML = '<i class="fas fa-save"></i> <span class="btn-text">บันทึก</span>';
+        button.style.color = '#28a745';
+        button.style.borderColor = '#28a745';
+
+    } else {
+        // บันทึกข้อมูล
+        const pcIdInput = row.querySelector('[data-field="pc_id"] input');
+        const statusSelect = row.querySelector('[data-field="status"] select');
+
+        const newPcId = pcIdInput.value.trim();
+        const originalPcId = pcIdInput.getAttribute('data-original');
+        const newStatus = statusSelect.value;
+        const originalStatus = statusSelect.getAttribute('data-original');
+
+        if (!newPcId) {
+            Swal.fire({
+                icon: 'error',
+                title: 'เกิดข้อผิดพลาด',
+                text: 'กรุณาระบุ PC ID',
+                confirmButtonColor: '#dc3545'
+            });
+            return;
+        }
+
+        // ตรวจสอบว่ามีการเปลี่ยนแปลงอะไรบ้าง
+        const pcIdChanged = (newPcId !== originalPcId);
+        const statusChanged = (newStatus !== originalStatus);
+
+        // ถ้าไม่มีการเปลี่ยนแปลงเลย
+        if (!pcIdChanged && !statusChanged) {
+            Swal.fire({
+                icon: 'info',
+                title: 'ไม่มีการเปลี่ยนแปลง',
+                text: 'ไม่พบข้อมูลที่ต้องอัปเดต',
+                confirmButtonColor: '#17a2b8'
+            });
+            return;
+        }
+
+        // ตรวจสอบว่าเปลี่ยนจาก available เป็น in_use หรือไม่
+        if (originalStatus === 'available' && newStatus === 'in_use') {
+            // ต้องกรอกรหัสเจ้าหน้าที่
+            Swal.fire({
+                title: 'เปลี่ยนสถานะเป็น "ใช้งาน"',
+                html: `
+                    <div style="text-align: left; padding: 0 20px;">
+                        <p style="margin-bottom: 15px; color: #666;">กรุณากรอกรหัสเจ้าหน้าที่เพื่อยืนยันตัวตน</p>
+                        <label style="display: block; margin-bottom: 5px; font-weight: 500;">รหัสเจ้าหน้าที่ <span style="color: red;">*</span></label>
+                        <input id="staff_id" class="swal2-input" placeholder="รหัสพนักงาน" style="margin: 0; width: 100%;" autofocus>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'ยืนยัน',
+                confirmButtonColor: '#28a745',
+                cancelButtonText: 'ยกเลิก',
+                preConfirm: () => {
+                    const staffId = document.getElementById('staff_id').value.trim();
+
+                    if (!staffId) {
+                        Swal.showValidationMessage('กรุณากรอกรหัสเจ้าหน้าที่');
+                        return false;
+                    }
+
+                    return staffId;
+                },
+                allowOutsideClick: () => !Swal.isLoading()
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const staffId = result.value;
+                    // ส่งข้อมูลพร้อมรหัสเจ้าหน้าที่
+                    performUpdates(pcIdChanged, statusChanged, false, staffId);
+                }
+            });
+            return;
+        }
+
+        // ฟังก์ชันสำหรับอัปเดตข้อมูล
+        const performUpdates = async (updatePcId, updateStatus, forceCheckout = false, staffId = null) => {
+            try {
+                // 1. อัปเดต PC ID (ถ้ามีการเปลี่ยน)
+                if (updatePcId) {
+                    const pcIdResponse = await fetch(`/api/update-computer-id/${pcId}/`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'X-CSRFToken': csrftoken
+                        },
+                        body: new URLSearchParams({
+                            'new_pc_id': newPcId
+                        })
+                    });
+
+                    const pcIdData = await pcIdResponse.json();
+
+                    if (!pcIdData.success) {
+                        throw new Error(pcIdData.message);
+                    }
+                }
+
+                // 2. อัปเดตสถานะ (ถ้ามีการเปลี่ยน)
+                if (updateStatus) {
+                    const params = {
+                        'status': newStatus,
+                        'force_checkout': forceCheckout ? 'true' : 'false'
+                    };
+
+                    if (staffId) {
+                        params['staff_id'] = staffId;
+                    }
+
+                    // ใช้ PC ID ใหม่ถ้ามีการเปลี่ยน
+                    const targetPcId = updatePcId ? newPcId : pcId;
+
+                    const statusResponse = await fetch(`/api/update-computer/${targetPcId}/`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'X-CSRFToken': csrftoken
+                        },
+                        body: new URLSearchParams(params)
+                    });
+
+                    const statusData = await statusResponse.json();
+
+                    if (statusData.require_confirmation) {
+                        // แสดง confirmation dialog สำหรับการ checkout
+                        Swal.fire({
+                            title: 'ยืนยันการ Checkout',
+                            html: `${statusData.message}<br><br><strong>หมายเหตุ:</strong> ระบบจะทำการ Checkout ผู้ใช้งานปัจจุบันออกอัตโนมัติ`,
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#f39c12',
+                            cancelButtonColor: '#6c757d',
+                            confirmButtonText: 'ยืนยัน Checkout และอัปเดต',
+                            cancelButtonText: 'ยกเลิก'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                performUpdates(false, true, true); // เรียกซ้ำแต่ไม่ update PC ID อีก
+                            }
+                        });
+                        return;
+                    }
+
+                    if (!statusData.success) {
+                        throw new Error(statusData.message);
+                    }
+                }
+
+                // สำเร็จ
+                Swal.fire({
+                    icon: 'success',
+                    title: 'สำเร็จ!',
+                    text: 'อัปเดตข้อมูลสำเร็จ',
+                    confirmButtonColor: '#28a745'
+                }).then(() => {
+                    location.reload();
+                });
+
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'เกิดข้อผิดพลาด',
+                    text: error.message,
+                    confirmButtonColor: '#dc3545'
+                });
+            }
+        };
+
+        // เริ่มอัปเดต
+        performUpdates(pcIdChanged, statusChanged);
+    }
+}
+
+// ฟังก์ชันติดตั้ง Software (แก้ไขสำหรับ Dropdown)
+function handleInstallSoftware() {
+    const pcSelection = document.getElementById('pc_selection').value;
+    const softwareId = document.getElementById('software_id').value;
+
+    if (!softwareId) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'แจ้งเตือน',
+            text: 'กรุณาเลือก Software ที่ต้องการติดตั้ง',
+            confirmButtonColor: '#f39c12'
+        });
+        return;
+    }
+
+    // สร้าง FormData
+    const formData = new FormData();
+    formData.append('pc_selection', pcSelection);
+    formData.append('software_id', softwareId);
+
+    // ส่ง request
+    fetch('{% url "install_software" %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrftoken
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire({
+                icon: 'success',
+                title: 'สำเร็จ!',
+                text: data.message,
+                confirmButtonColor: '#28a745'
+            }).then(() => {
+                // รีเซ็ตฟอร์ม
+                document.getElementById('installSoftwareForm').reset();
+                location.reload();
+            });
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'เกิดข้อผิดพลาด',
+                text: data.message,
+                confirmButtonColor: '#dc3545'
+            });
+        }
+    })
+    .catch(error => {
+        Swal.fire({
+            icon: 'error',
+            title: 'เกิดข้อผิดพลาด',
+            text: 'ไม่สามารถติดตั้ง Software ประจำเครื่องได้: ' + error.message,
+            confirmButtonColor: '#dc3545'
+        });
+    });
+}
+
+// ฟังก์ชันยืนยันการลบเครื่อง
+function confirmDelete(pcId) {
+    Swal.fire({
+        title: 'ยืนยันการลบ?',
+        text: `คุณต้องการลบเครื่อง ${pcId} ใช่หรือไม่?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'ลบเครื่อง',
+        cancelButtonText: 'ยกเลิก'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Send delete request
+            fetch(`/api/delete-computer/${pcId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrftoken
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'ลบสำเร็จ!',
+                        text: data.message,
+                        confirmButtonColor: '#28a745'
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'เกิดข้อผิดพลาด',
+                        text: data.message,
+                        confirmButtonColor: '#dc3545'
+                    });
+                }
+            })
+            .catch(error => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'เกิดข้อผิดพลาด',
+                    text: 'ไม่สามารถลบเครื่องได้: ' + error.message,
+                    confirmButtonColor: '#dc3545'
+                });
+            });
+        }
+    });
+}
+</script>
+{% endblock %}

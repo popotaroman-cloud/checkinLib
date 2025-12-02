@@ -1,0 +1,304 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}จัดการ Software ประจำเครื่อง - Lab Admin{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+{% endblock %}
+
+{% block body_class %}admin-mode{% endblock %}
+
+{% block content %}
+    <nav class="sidebar">
+        <h2><i class="fas fa-server"></i> Lab Admin</h2>
+        <ul class="nav-links">
+            <li><a href="{% url 'dashboard' %}"><i class="fas fa-th-large"></i> Dashboard</a></li>
+            <li><a href="{% url 'manage' %}"><i class="fas fa-desktop"></i> จัดการเครื่อง</a></li>
+            <li><a href="{% url 'manage_software' %}" class="active"><i class="fas fa-box"></i> จัดการ Software ประจำเครื่อง</a></li>
+            <li><a href="{% url 'report' %}"><i class="fas fa-chart-line"></i> รายงานสถิติ</a></li>
+            <li style="margin-top: auto;">
+                <a href="{% url 'index' %}" style="background: rgba(255,255,255,0.1);">
+                    <i class="fas fa-sign-out-alt"></i> กลับหน้า Kiosk
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <main class="main-content">
+        <div class="header-bar">
+            <h1>จัดการ Software ประจำเครื่อง</h1>
+            <div>
+                <button class="btn btn-success" onclick="showAddSoftwareModal()" style="background: #28a745;">
+                    <i class="fas fa-plus"></i> เพิ่ม Software ประจำเครื่อง
+                </button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="margin: 0;">รายการ Software ประจำเครื่องทั้งหมด ({{ software_list.count }})</h3>
+            </div>
+
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>ชื่อ Software ประจำเครื่อง</th>
+                            <th>เวอร์ชัน</th>
+                            <th style="width: 150px;">จัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for software in software_list %}
+                        <tr data-software-id="{{ software.id }}">
+                            <td>{{ forloop.counter }}</td>
+                            <td class="editable-cell" data-field="name"><b>{{ software.name }}</b></td>
+                            <td class="editable-cell" data-field="version">{{ software.version|default:"-" }}</td>
+                            <td>
+                                <button onclick="toggleEditSoftware(this, {{ software.id }})" class="btn btn-outline edit-btn" style="padding: 5px 10px; font-size: 0.8rem;">
+                                    <i class="fas fa-edit"></i> <span class="btn-text">แก้ไข</span>
+                                </button>
+                                <button onclick="confirmDeleteSoftware({{ software.id }}, '{{ software.name }}')" class="btn btn-outline" style="padding: 5px 10px; font-size: 0.8rem; color: #dc3545; border-color: #dc3545;">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" class="text-center">ไม่พบ Software ประจำเครื่องในระบบ</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top: 20px;">
+            <h3><i class="fas fa-info-circle"></i> คำแนะนำ</h3>
+            <ul style="color: #666; line-height: 1.8;">
+                <li>คลิก <b>"เพิ่ม Software ประจำเครื่อง"</b> เพื่อเพิ่ม Software ประจำเครื่องใหม่เข้าสู่ระบบ</li>
+                <li>คลิก <b>"แก้ไข"</b> เพื่อแก้ไขชื่อและเวอร์ชันของ Software ประจำเครื่อง</li>
+                <li>คลิกไอคอนถังขยะเพื่อลบ Software ประจำเครื่องออกจากระบบ</li>
+                <li>Software ประจำเครื่องที่เพิ่มจะปรากฏในหน้า <b>"จัดการเครื่อง"</b> สำหรับติดตั้งลงเครื่องคอมพิวเตอร์</li>
+            </ul>
+        </div>
+    </main>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+// Get CSRF Token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+const csrftoken = getCookie('csrftoken');
+
+// ฟังก์ชันแสดง Modal เพิ่ม Software ประจำเครื่อง
+function showAddSoftwareModal() {
+    Swal.fire({
+        title: 'เพิ่ม Software ประจำเครื่องใหม่',
+        html: `
+            <input id="software_name" class="swal2-input" placeholder="ชื่อ Software ประจำเครื่อง" required>
+            <input id="software_version" class="swal2-input" placeholder="เวอร์ชัน (ไม่จำเป็น)">
+        `,
+        showCancelButton: true,
+        confirmButtonColor: '#28a745',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'เพิ่ม Software ประจำเครื่อง',
+        cancelButtonText: 'ยกเลิก',
+        preConfirm: () => {
+            const name = document.getElementById('software_name').value.trim();
+            const version = document.getElementById('software_version').value.trim();
+
+            if (!name) {
+                Swal.showValidationMessage('กรุณาระบุชื่อ Software ประจำเครื่อง');
+                return false;
+            }
+
+            return fetch('{% url "add_software" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': csrftoken
+                },
+                body: new URLSearchParams({
+                    'name': name,
+                    'version': version
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    throw new Error(data.message);
+                }
+                return data;
+            })
+            .catch(error => {
+                Swal.showValidationMessage(`เกิดข้อผิดพลาด: ${error.message}`);
+            });
+        },
+        allowOutsideClick: () => !Swal.isLoading()
+    }).then((result) => {
+        if (result.isConfirmed && result.value) {
+            Swal.fire({
+                icon: 'success',
+                title: 'สำเร็จ!',
+                text: result.value.message,
+                confirmButtonColor: '#28a745'
+            }).then(() => {
+                location.reload();
+            });
+        }
+    });
+}
+
+// ฟังก์ชันสลับโหมดแก้ไข
+function toggleEditSoftware(button, softwareId) {
+    const row = button.closest('tr');
+    const isEditing = row.classList.contains('editing');
+
+    if (!isEditing) {
+        // เข้าสู่โหมดแก้ไข
+        row.classList.add('editing');
+
+        // ชื่อซอฟต์แวร์
+        const nameCell = row.querySelector('[data-field="name"]');
+        const currentName = nameCell.querySelector('b').textContent;
+        nameCell.innerHTML = `<input type="text" class="form-control" value="${currentName}" data-original="${currentName}" style="padding: 5px; font-size: 0.9rem;">`;
+
+        // เวอร์ชัน
+        const versionCell = row.querySelector('[data-field="version"]');
+        const currentVersion = versionCell.textContent.trim();
+        const versionValue = currentVersion === '-' ? '' : currentVersion;
+        versionCell.innerHTML = `<input type="text" class="form-control" value="${versionValue}" data-original="${versionValue}" placeholder="เวอร์ชัน" style="padding: 5px; font-size: 0.9rem;">`;
+
+        // เปลี่ยนปุ่มเป็น "บันทึก"
+        button.innerHTML = '<i class="fas fa-save"></i> <span class="btn-text">บันทึก</span>';
+        button.style.color = '#28a745';
+        button.style.borderColor = '#28a745';
+
+    } else {
+        // บันทึกข้อมูล
+        const nameInput = row.querySelector('[data-field="name"] input');
+        const versionInput = row.querySelector('[data-field="version"] input');
+
+        const newName = nameInput.value.trim();
+        const newVersion = versionInput.value.trim();
+
+        if (!newName) {
+            Swal.fire({
+                icon: 'error',
+                title: 'เกิดข้อผิดพลาด',
+                text: 'กรุณาระบุชื่อซอฟต์แวร์',
+                confirmButtonColor: '#dc3545'
+            });
+            return;
+        }
+
+        // ส่งข้อมูลไปอัปเดต
+        fetch(`/api/update-software/${softwareId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': csrftoken
+            },
+            body: new URLSearchParams({
+                'name': newName,
+                'version': newVersion
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'สำเร็จ!',
+                    text: data.message,
+                    confirmButtonColor: '#28a745'
+                }).then(() => {
+                    location.reload();
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'เกิดข้อผิดพลาด',
+                    text: data.message,
+                    confirmButtonColor: '#dc3545'
+                });
+            }
+        })
+        .catch(error => {
+            Swal.fire({
+                icon: 'error',
+                title: 'เกิดข้อผิดพลาด',
+                text: 'ไม่สามารถอัปเดตข้อมูลได้: ' + error.message,
+                confirmButtonColor: '#dc3545'
+            });
+        });
+    }
+}
+
+// ฟังก์ชันยืนยันการลบซอฟต์แวร์
+function confirmDeleteSoftware(softwareId, softwareName) {
+    Swal.fire({
+        title: 'ยืนยันการลบ?',
+        text: `คุณต้องการลบซอฟต์แวร์ "${softwareName}" ใช่หรือไม่?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'ลบซอฟต์แวร์',
+        cancelButtonText: 'ยกเลิก'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/api/delete-software/${softwareId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrftoken
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'ลบสำเร็จ!',
+                        text: data.message,
+                        confirmButtonColor: '#28a745'
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'เกิดข้อผิดพลาด',
+                        text: data.message,
+                        confirmButtonColor: '#dc3545'
+                    });
+                }
+            })
+            .catch(error => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'เกิดข้อผิดพลาด',
+                    text: 'ไม่สามารถลบซอฟต์แวร์ได้: ' + error.message,
+                    confirmButtonColor: '#dc3545'
+                });
+            });
+        }
+    });
+}
+</script>
+{% endblock %}

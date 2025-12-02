@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Admin Login - Lab System{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    }
+    .login-card {
+        background: white;
+        padding: 40px;
+        border-radius: 20px;
+        width: 100%;
+        max-width: 400px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        text-align: center;
+    }
+    .login-icon {
+        font-size: 3rem;
+        color: var(--primary-color);
+        margin-bottom: 20px;
+        background: #e3f2fd;
+        width: 80px;
+        height: 80px;
+        line-height: 80px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-card">
+    <div class="login-icon"><i class="fas fa-user-shield"></i></div>
+
+    <h2 class="mb-2" style="color: var(--primary-color);">Manager Login</h2>
+    <p class="mb-2" style="color: var(--text-muted);">เข้าสู่ระบบผู้ดูแลห้องปฏิบัติการ</p>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}" style="padding: 10px; margin-bottom: 15px; border-radius: 5px; background: {% if message.tags == 'error' %}#ffebee{% else %}#e8f5e9{% endif %}; color: {% if message.tags == 'error' %}#c62828{% else %}#2e7d32{% endif %};">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="POST" action="{% url 'manager_login' %}">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ next|default:'/manager/dashboard/' }}">
+
+        <div class="form-group" style="text-align: left;">
+            <label class="form-label">Username</label>
+            <div style="position: relative;">
+                <i class="fas fa-user" style="position: absolute; left: 15px; top: 15px; color: #aaa;"></i>
+                <input type="text" name="username" class="form-control" placeholder="admin" style="padding-left: 40px;" required autofocus>
+            </div>
+        </div>
+
+        <div class="form-group" style="text-align: left;">
+            <label class="form-label">Password</label>
+            <div style="position: relative;">
+                <i class="fas fa-lock" style="position: absolute; left: 15px; top: 15px; color: #aaa;"></i>
+                <input type="password" name="password" class="form-control" placeholder="••••••" style="padding-left: 40px;" required>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+            <i class="fas fa-sign-in-alt"></i> เข้าสู่ระบบ
+        </button>
+    </form>
+
+    <div class="mt-2" style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
+        <p style="font-size: 0.85rem; color: #999; margin-bottom: 10px;">
+            Default: admin / admin123
+        </p>
+        <a href="{% url 'index' %}" style="font-size: 0.9rem; text-decoration: none; color: var(--text-muted);">
+            <i class="fas fa-arrow-left"></i> กลับไปหน้า Kiosk
+        </a>
+    </div>
+</div>
+{% endblock %}

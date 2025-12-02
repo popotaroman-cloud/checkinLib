@@ -1,0 +1,131 @@
+/* static/css/style.css */
+
+:root {
+    /* Color Palette (Blue & White Theme) */
+    --primary-color: #004e92;       /* น้ำเงินเข้ม (Headings, Sidebar) */
+    --primary-light: #000428;       /* น้ำเงินดำ (Gradient Start) */
+    --secondary-color: #007bff;     /* น้ำเงินสว่าง (Buttons, Links) */
+    --accent-color: #e3f2fd;        /* ฟ้าอ่อนมาก (Backgrounds) */
+    
+    --white: #ffffff;
+    --text-dark: #333333;
+    --text-muted: #6c757d;
+    
+    /* Status Colors */
+    --success: #198754;             /* เขียว (ว่าง) */
+    --danger: #dc3545;              /* แดง (ไม่ว่าง) */
+    --warning: #ffc107;             /* เหลือง (ดาว) */
+    --gray: #adb5bd;                /* เทา (ปิดปรับปรุง) */
+
+    /* Spacing & UI */
+    --border-radius: 10px;
+    --shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Prompt', sans-serif;
+    color: var(--text-dark);
+    line-height: 1.6;
+    background-color: var(--accent-color);
+}
+
+/* --- Common Components --- */
+
+/* Cards */
+.card {
+    background-color: var(--white);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    padding: 25px;
+    margin-bottom: 20px;
+}
+
+/* Buttons */
+.btn {
+    display: inline-block;
+    padding: 12px 24px;
+    font-family: 'Prompt', sans-serif;
+    font-size: 1rem;
+    font-weight: 500;
+    text-align: center;
+    text-decoration: none;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.btn-primary {
+    background-color: var(--secondary-color);
+    color: var(--white);
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+}
+
+.btn-outline {
+    background-color: transparent;
+    border: 2px solid var(--secondary-color);
+    color: var(--secondary-color);
+}
+
+.btn-outline:hover {
+    background-color: var(--secondary-color);
+    color: var(--white);
+}
+
+/* Forms */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--text-dark);
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px;
+    font-family: 'Prompt', sans-serif;
+    font-size: 1rem;
+    border: 1px solid #ced4da;
+    border-radius: var(--border-radius);
+    transition: border-color 0.3s;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--secondary-color);
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+}
+
+/* Utilities */
+.text-center { text-align: center; }
+.mt-2 { margin-top: 1rem; }
+.mb-2 { margin-bottom: 1rem; }
+.hidden { display: none !important; }
+
+/* Alert Messages (Bootstrap style) */
+.alert {
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: var(--border-radius);
+}
+.alert-success { background-color: #d1e7dd; color: #0f5132; }
+.alert-danger { background-color: #f8d7da; color: #842029; }
+.alert-warning { background-color: #fff3cd; color: #664d03; }

@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Kiosk - {{ pc.pc_id }}{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/kiosk.css' %}">
+{% endblock %}
+
+{% block body_class %}kiosk-mode{% endblock %}
+
+{% block content %}
+<div class="kiosk-container">
+    <div style="font-size: 3rem; color: var(--primary-color); margin-bottom: 10px;">
+        <i class="fas fa-desktop"></i>
+    </div>
+    
+    <h1 class="kiosk-title">ระบบเช็คอินห้องปฏิบัติการ</h1>
+    <p style="font-size: 1.2rem; font-weight: bold; color: var(--text-muted);">
+        หมายเลขเครื่อง: <span style="color: var(--secondary-color);">{{ pc.pc_id }}</span>
+    </p>
+
+    {% if status.status == 'available' %}
+        <a href="{% url 'checkin' pc.pc_id %}" style="text-decoration: none;">
+            <div class="qr-container" title="คลิกเพื่อจำลองการสแกน (เข้าใช้งาน)">
+                <i class="fas fa-qrcode"></i>
+            </div>
+        </a>
+        <h2 style="color: var(--success);"><i class="fas fa-check-circle"></i> เครื่องว่าง (Available)</h2>
+        <p class="mt-2">สแกน QR Code เพื่อ <b>เข้าใช้งาน</b></p>
+
+        <!-- ปุ่ม Check-in -->
+        <div style="margin-top: 30px;">
+            <a href="{% url 'checkin' pc.pc_id %}" class="btn" style="background-color: var(--success); color: white; padding: 15px 40px; font-size: 1.2rem; text-decoration: none; border-radius: 8px; display: inline-block;">
+                <i class="fas fa-sign-in-alt"></i> เข้าใช้งาน (Check-in)
+            </a>
+        </div>
+
+    {% elif status.status == 'in_use' %}
+        <a href="{% url 'checkout' pc.pc_id %}" style="text-decoration: none;">
+            <div class="qr-container" style="border-color: var(--danger); background-color: #fff5f5;" title="คลิกเพื่อจำลองการสแกน (เลิกใช้งาน)">
+                <i class="fas fa-sign-out-alt" style="color: var(--danger);"></i>
+            </div>
+        </a>
+        <h2 style="color: var(--danger);"><i class="fas fa-user-clock"></i> ใช้งานอยู่โดย: {{ status.current_user_name }}</h2>
+
+        <!-- แสดงข้อมูลการใช้งาน -->
+        <div style="margin-top: 20px; background-color: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #dee2e6;">
+            <div style="display: grid; gap: 15px; text-align: left; max-width: 500px; margin: 0 auto;">
+                <!-- ชื่อผู้ใช้ -->
+                <div>
+                    <strong style="color: var(--text-muted);">
+                        <i class="fas fa-user"></i> ผู้ใช้งาน:
+                    </strong>
+                    <span style="color: var(--text-color); font-size: 1.1rem;">{{ status.current_user_name }}</span>
+                </div>
+
+                <!-- ประเภทผู้ใช้ -->
+                <div>
+                    <strong style="color: var(--text-muted);">
+                        <i class="fas fa-id-card"></i> ประเภท:
+                    </strong>
+                    <span style="color: var(--text-color);">{{ status.get_current_user_type_display }}</span>
+                </div>
+
+                <!-- ซอฟต์แวร์ -->
+                {% if status.software %}
+                <div>
+                    <strong style="color: var(--text-muted);">
+                        <i class="fas fa-box"></i> ซอฟต์แวร์:
+                    </strong>
+                    <span style="color: var(--text-color);">{{ status.software }}</span>
+                </div>
+                {% endif %}
+
+                <!-- ระยะเวลาใช้งาน -->
+                <div>
+                    <strong style="color: var(--text-muted);">
+                        <i class="fas fa-clock"></i> ระยะเวลา:
+                    </strong>
+                    <span style="color: var(--primary-color); font-size: 1.3rem; font-weight: bold;">
+                        <span id="duration-counter">{{ duration_minutes }}</span> นาที
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ปุ่ม Checkout -->
+        <div style="margin-top: 30px;">
+            <a href="{% url 'checkout' pc.pc_id %}" class="btn" style="background-color: var(--danger); color: white; padding: 15px 40px; font-size: 1.2rem; text-decoration: none; border-radius: 8px; display: inline-block;">
+                <i class="fas fa-sign-out-alt"></i> ลงชื่อออก (Check-out)
+            </a>
+        </div>
+
+    {% else %}
+        <div class="qr-container" style="border-color: var(--gray); background-color: #e9ecef; cursor: not-allowed;">
+            <i class="fas fa-tools" style="color: var(--gray);"></i>
+        </div>
+        <h2 style="color: var(--gray);">งดให้บริการ (Maintenance)</h2>
+        <p class="mt-2">ขออภัยในความไม่สะดวก</p>
+    {% endif %}
+
+    <div style="margin-top: 40px; border-top: 1px solid #eee; padding-top: 10px;">
+        <a href="{% url 'manager_login' %}" style="color: #ccc; font-size: 0.8rem; text-decoration: none;">
+            <i class="fas fa-cog"></i> Admin Login
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if status.status == 'in_use' %}
+<script>
+    // อัปเดตตัวนับเวลาทุกนาที
+    let durationMinutes = {{ duration_minutes }};
+    const counterElement = document.getElementById('duration-counter');
+
+    setInterval(() => {
+        durationMinutes++;
+        counterElement.textContent = durationMinutes;
+    }, 60000); // อัปเดตทุก 60 วินาที (1 นาที)
+</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Checkout - {{ pc.pc_id }}{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/kiosk.css' %}">
+{% endblock %}
+
+{% block body_class %}kiosk-mode{% endblock %}
+
+{% block content %}
+<div class="kiosk-container">
+    <div style="color: var(--success); font-size: 4rem; margin-bottom: 20px;">
+        <i class="fas fa-check-circle"></i>
+    </div>
+    
+    <h2 class="kiosk-title">เลิกใช้งานเครื่อง {{ pc.pc_id }}</h2>
+    <p>ผู้ใช้งานปัจจุบัน: <b>{{ pc.current_user_name }}</b></p>
+    <p style="color: var(--text-muted); font-size: 0.9rem;">เข้าใช้งานเมื่อ: {{ pc.last_checkin|date:"H:i" }} น.</p>
+
+    <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
+
+    <form method="POST" action="{% url 'checkout' pc.pc_id %}">
+        {% csrf_token %}
+        
+        <div>
+            <p style="font-weight: bold;">ความพึงพอใจการให้บริการ</p>
+            
+            <input type="hidden" name="rating" id="ratingInput" value="5">
+            
+            <div class="rating">
+                <i class="fas fa-star checked" data-value="1"></i>
+                <i class="fas fa-star checked" data-value="2"></i>
+                <i class="fas fa-star checked" data-value="3"></i>
+                <i class="fas fa-star checked" data-value="4"></i>
+                <i class="fas fa-star checked" data-value="5"></i>
+            </div>
+        </div>
+
+        <div class="form-group" style="text-align: left; margin-top: 15px;">
+            <label class="form-label">ข้อเสนอแนะเพิ่มเติม (ถ้ามี)</label>
+            <textarea name="comment" class="form-control" rows="3" placeholder="เช่น เครื่องช้า, เมาส์ไม่ดี, หรือคำชม..."></textarea>
+        </div>
+
+        <div style="margin-top: 20px;">
+            <button type="submit" class="btn btn-primary btn-lg" style="background-color: var(--success);">
+                <i class="fas fa-paper-plane"></i> ส่งข้อมูลและเช็คเอาท์
+            </button>
+            
+            <a href="{% url 'index' %}?pc_id={{ pc.pc_id }}" class="btn btn-outline mt-2" style="display: block; border: none; color: #999;">
+                กลับไปหน้าหลัก (ยังไม่เช็คเอาท์)
+            </a>
+        </div>
+    </form>
+</div>
+
+<script src="{% static 'js/script.js' %}"></script>
+{% endblock %}

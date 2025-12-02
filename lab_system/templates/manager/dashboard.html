@@ -1,0 +1,353 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - Lab Admin{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+{% endblock %}
+
+{% block body_class %}admin-mode{% endblock %}
+
+{% block content %}
+    <nav class="sidebar">
+        <h2><i class="fas fa-server"></i> Lab Admin</h2>
+        <ul class="nav-links">
+            <li><a href="{% url 'dashboard' %}" class="active"><i class="fas fa-th-large"></i> Dashboard</a></li>
+            <li><a href="{% url 'manage' %}"><i class="fas fa-desktop"></i> จัดการเครื่อง</a></li>
+            <li><a href="{% url 'manage_software' %}"><i class="fas fa-box"></i> จัดการซอฟต์แวร์</a></li>
+            <li><a href="{% url 'report' %}"><i class="fas fa-chart-line"></i> รายงานสถิติ</a></li>
+            <li style="margin-top: auto;">
+                <a href="{% url 'index' %}" style="background: rgba(255,255,255,0.1);">
+                    <i class="fas fa-home"></i> กลับหน้า Kiosk
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'manager_logout' %}" style="background: rgba(255,59,48,0.8);">
+                    <i class="fas fa-sign-out-alt"></i> ออกจากระบบ
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <main class="main-content">
+        <div class="header-bar">
+            <h1>ภาพรวมสถานะห้องปฏิบัติการ</h1>
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <span style="color: #666; font-size: 0.9rem;">
+                    <i class="fas fa-user-circle"></i> {{ request.user.username }}
+                    {% if request.user.is_superuser %}(Superuser){% elif request.user.is_staff %}(Staff){% endif %}
+                </span>
+                <span id="currentTime" style="color: var(--text-muted);">--:--</span>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card blue">
+                <h3>{{ stats.total }}</h3>
+                <p>จำนวนเครื่องทั้งหมด</p>
+            </div>
+            <div class="stat-card green">
+                <h3>{{ stats.available }}</h3>
+                <p>ว่างพร้อมใช้ (Available)</p>
+            </div>
+            <div class="stat-card red">
+                <h3>{{ stats.occupied }}</h3>
+                <p>กำลังใช้งาน (Occupied)</p>
+            </div>
+            <div class="stat-card gray">
+                <h3>{{ stats.maintenance }}</h3>
+                <p>ปิดปรับปรุง (Maintenance)</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3>สถานะเครื่องคอมพิวเตอร์</h3>
+                <div>
+                    <span style="margin-right: 15px; font-size: 0.9rem;">
+                        <i class="fas fa-circle" style="color: var(--success);"></i> ว่าง
+                        <i class="fas fa-circle" style="color: var(--danger); margin-left: 5px;"></i> ใช้งาน
+                        <i class="fas fa-circle" style="color: var(--gray); margin-left: 5px;"></i> ซ่อม
+                    </span>
+                </div>
+            </div>
+
+            <div class="pc-grid">
+                {% for pc in computers %}
+                    <div class="pc-item {{ pc.status_info.status }}" onclick="confirmToggle('{{ pc.pc_id }}', '{{ pc.status_info.status }}')">
+                        <i class="fas fa-desktop"></i>
+                        <h4>{{ pc.pc_id }}</h4>
+
+                        {% if pc.status_info.status == 'in_use' %}
+                            <small>{{ pc.status_info.current_user_name }}</small>
+                            <small style="color: var(--text-muted);">{{ pc.status_info.start_time|time:"H:i" }} น.</small>
+                        {% elif pc.status_info.status == 'maintenance' %}
+                            <small>ส่งซ่อม</small>
+                        {% elif pc.status_info.status == 'disabled' %}
+                            <small>งดให้บริการ</small>
+                        {% else %}
+                            <small>ว่าง</small>
+                        {% endif %}
+                    </div>
+                {% empty %}
+                    <p class="text-center" style="grid-column: 1/-1;">ยังไม่มีข้อมูลเครื่องคอมพิวเตอร์</p>
+                {% endfor %}
+            </div>
+        </div>
+    </main>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Get CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    const csrftoken = getCookie('csrftoken');
+
+    // แสดงเวลาปัจจุบัน
+    setInterval(() => {
+        const now = new Date();
+        document.getElementById('currentTime').innerText = now.toLocaleTimeString('th-TH');
+    }, 1000);
+
+    // ฟังก์ชันยืนยันก่อนเปลี่ยนสถานะ
+    function confirmToggle(pcId, currentStatus) {
+        let newStatus = '';
+        let action = '';
+        let confirmBtnText = '';
+        let confirmBtnColor = '';
+
+        // กรณีเครื่องซ่อม (maintenance) → เปลี่ยนเป็น available
+        if (currentStatus === 'maintenance') {
+            newStatus = 'available';
+            action = 'เปิดใช้งาน (Available)';
+            confirmBtnText = 'เปิดใช้งาน';
+            confirmBtnColor = '#198754';
+        }
+        // กรณีเครื่องว่าง (available) → ให้เจ้าหน้าที่เข้าใช้
+        else if (currentStatus === 'available') {
+            newStatus = 'in_use';
+            action = 'เปลี่ยนเป็น "ใช้งาน"';
+            confirmBtnText = 'เปลี่ยนสถานะ';
+            confirmBtnColor = '#0d6efd';
+        }
+        // กรณีเครื่องใช้งานอยู่ (in_use) → แสดงเมนูเลือก Checkout หรือ Maintenance
+        else if (currentStatus === 'in_use') {
+            showInUseMenu(pcId);
+            return;
+        }
+        // กรณี disabled (legacy) → เปิดใช้งาน
+        else if (currentStatus === 'disabled') {
+            newStatus = 'available';
+            action = 'เปิดใช้งาน (Available)';
+            confirmBtnText = 'เปิดใช้งาน';
+            confirmBtnColor = '#198754';
+        }
+        else {
+            newStatus = 'maintenance';
+            action = 'ปิดปรับปรุง (Maintenance)';
+            confirmBtnText = 'ปิดเครื่อง';
+            confirmBtnColor = '#d33';
+        }
+
+        // ถ้าเป็นการเปลี่ยนจาก available เป็น in_use ต้องกรอกรหัสเจ้าหน้าที่
+        if (currentStatus === 'available' && newStatus === 'in_use') {
+            Swal.fire({
+                title: `${action} - ${pcId}`,
+                html: `
+                    <div style="text-align: left; padding: 0 20px;">
+                        <p style="margin-bottom: 15px; color: #666;">กรุณากรอกรหัสเจ้าหน้าที่เพื่อยืนยันตัวตน</p>
+                        <label style="display: block; margin-bottom: 5px; font-weight: 500;">รหัสเจ้าหน้าที่ <span style="color: red;">*</span></label>
+                        <input id="staff_id" class="swal2-input" placeholder="รหัสพนักงาน" style="margin: 0; width: 100%;" autofocus>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'ยืนยัน',
+                confirmButtonColor: '#28a745',
+                cancelButtonText: 'ยกเลิก',
+                preConfirm: () => {
+                    const staffId = document.getElementById('staff_id').value.trim();
+
+                    if (!staffId) {
+                        Swal.showValidationMessage('กรุณากรอกรหัสเจ้าหน้าที่');
+                        return false;
+                    }
+
+                    return staffId;
+                },
+                allowOutsideClick: () => !Swal.isLoading()
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const staffId = result.value;
+                    updateComputerStatus(pcId, newStatus, false, staffId);
+                }
+            });
+        } else {
+            // กรณีอื่นๆ แสดง confirmation dialog ธรรมดา
+            Swal.fire({
+                title: `จัดการเครื่อง ${pcId}?`,
+                text: `คุณต้องการ "${action}" ใช่หรือไม่?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: confirmBtnColor,
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: confirmBtnText,
+                cancelButtonText: 'ยกเลิก'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    updateComputerStatus(pcId, newStatus, false, null);
+                }
+            });
+        }
+    }
+
+    // ฟังก์ชันแสดงเมนูสำหรับเครื่องที่ใช้งานอยู่
+    function showInUseMenu(pcId) {
+        Swal.fire({
+            title: `จัดการเครื่อง ${pcId}`,
+            text: 'เครื่องนี้กำลังใช้งานอยู่ คุณต้องการทำอะไร?',
+            icon: 'question',
+            showDenyButton: true,
+            showCancelButton: true,
+            confirmButtonText: '<i class="fas fa-sign-out-alt"></i> Checkout',
+            confirmButtonColor: '#dc3545',
+            denyButtonText: '<i class="fas fa-tools"></i> ส่งซ่อม',
+            denyButtonColor: '#6c757d',
+            cancelButtonText: 'ยกเลิก',
+            cancelButtonColor: '#3085d6'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // ผู้ใช้เลือก Checkout
+                confirmCheckout(pcId);
+            } else if (result.isDenied) {
+                // ผู้ใช้เลือก Maintenance
+                confirmMaintenance(pcId);
+            }
+        });
+    }
+
+    // ฟังก์ชันยืนยัน Checkout
+    function confirmCheckout(pcId) {
+        Swal.fire({
+            title: 'ยืนยันการ Checkout',
+            text: `คุณต้องการทำการ Checkout ผู้ใช้งานออกจากเครื่อง ${pcId} ใช่หรือไม่?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'ยืนยัน Checkout',
+            cancelButtonText: 'ยกเลิก'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // เปลี่ยนสถานะเป็น available พร้อม force checkout
+                updateComputerStatus(pcId, 'available', true, null);
+            }
+        });
+    }
+
+    // ฟังก์ชันยืนยันส่งซ่อม
+    function confirmMaintenance(pcId) {
+        Swal.fire({
+            title: 'ยืนยันส่งซ่อม',
+            html: `คุณต้องการส่งเครื่อง ${pcId} เข้าซ่อม ใช่หรือไม่?<br><br><strong>หมายเหตุ:</strong> ระบบจะทำการ Checkout ผู้ใช้งานปัจจุบันออกอัตโนมัติ`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#6c757d',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'ยืนยันส่งซ่อม',
+            cancelButtonText: 'ยกเลิก'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // เปลี่ยนสถานะเป็น maintenance พร้อม force checkout
+                updateComputerStatus(pcId, 'maintenance', true, null);
+            }
+        });
+    }
+
+    // ฟังก์ชันส่ง request ไป update_computer API
+    function updateComputerStatus(pcId, newStatus, forceCheckout = false, staffId = null) {
+        const params = {
+            'new_pc_id': pcId,
+            'status': newStatus,
+            'force_checkout': forceCheckout ? 'true' : 'false'
+        };
+
+        if (staffId) {
+            params['staff_id'] = staffId;
+        }
+
+        fetch(`/api/update-computer/${pcId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': csrftoken
+            },
+            body: new URLSearchParams(params)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'สำเร็จ!',
+                    text: data.message,
+                    confirmButtonColor: '#28a745'
+                }).then(() => {
+                    location.reload();
+                });
+            } else if (data.require_confirmation) {
+                // แสดง confirmation dialog สำหรับการ checkout
+                Swal.fire({
+                    title: 'ยืนยันการ Checkout',
+                    html: `${data.message}<br><br><strong>หมายเหตุ:</strong> ระบบจะทำการ Checkout ผู้ใช้งานปัจจุบันออกอัตโนมัติ`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#f39c12',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'ยืนยัน Checkout และอัปเดต',
+                    cancelButtonText: 'ยกเลิก'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        updateComputerStatus(pcId, newStatus, true, staffId);
+                    }
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'เกิดข้อผิดพลาด',
+                    text: data.message,
+                    confirmButtonColor: '#dc3545'
+                });
+            }
+        })
+        .catch(error => {
+            Swal.fire({
+                icon: 'error',
+                title: 'เกิดข้อผิดพลาด',
+                text: 'ไม่สามารถอัปเดตข้อมูลได้: ' + error.message,
+                confirmButtonColor: '#dc3545'
+            });
+        });
+    }
+
+    // Auto Refresh
+    setTimeout(() => {
+        window.location.reload();
+    }, 30000); // Refresh ทุก 30 วิ
+</script>
+<script src="{% static 'js/script.js' %}"></script>
+{% endblock %}

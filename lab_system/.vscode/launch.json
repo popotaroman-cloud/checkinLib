@@ -1,0 +1,127 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Django: Run Server",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}\\manage.py",
+            "args": [
+                "runserver",
+                "0.0.0.0:8000"
+            ],
+            "django": true,
+            "justMyCode": true,
+            "env": {
+                "DJANGO_SETTINGS_MODULE": "lab_system.settings",
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Django: Run Server (SQLite)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}\\manage.py",
+            "args": [
+                "runserver",
+                "0.0.0.0:8000"
+            ],
+            "django": true,
+            "justMyCode": true,
+            "env": {
+                "DJANGO_SETTINGS_MODULE": "lab_system.settings",
+                "PYTHONPATH": "${workspaceFolder}",
+                "DB_ENGINE": "sqlite"
+            },
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Django: Run Server (MySQL)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}\\manage.py",
+            "args": [
+                "runserver",
+                "0.0.0.0:8000"
+            ],
+            "django": true,
+            "justMyCode": true,
+            "env": {
+                "DJANGO_SETTINGS_MODULE": "lab_system.settings",
+                "PYTHONPATH": "${workspaceFolder}",
+                "DB_ENGINE": "mysql",
+                "DB_NAME": "lab_checkin_db",
+                "DB_USER": "labuser",
+                "DB_PASSWORD": "labpassword",
+                "DB_HOST": "localhost",
+                "DB_PORT": "3306"
+            },
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Django: Test",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}\\manage.py",
+            "args": [
+                "test"
+            ],
+            "django": true,
+            "justMyCode": true,
+            "env": {
+                "DJANGO_SETTINGS_MODULE": "lab_system.settings",
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Django: Shell",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}\\manage.py",
+            "args": [
+                "shell"
+            ],
+            "django": true,
+            "justMyCode": true,
+            "env": {
+                "DJANGO_SETTINGS_MODULE": "lab_system.settings",
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Django: Migrate",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}\\manage.py",
+            "args": [
+                "migrate"
+            ],
+            "django": true,
+            "justMyCode": true,
+            "env": {
+                "DJANGO_SETTINGS_MODULE": "lab_system.settings",
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Django: Make Migrations",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}\\manage.py",
+            "args": [
+                "makemigrations"
+            ],
+            "django": true,
+            "justMyCode": true,
+            "env": {
+                "DJANGO_SETTINGS_MODULE": "lab_system.settings",
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+            "console": "integratedTerminal"
+        }
+    ]
+}
