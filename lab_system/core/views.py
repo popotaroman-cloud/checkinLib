@@ -50,7 +50,7 @@ def reg_api(user_id):
                 'name': full_name,
                 'faculty': data.get('FACULTYNAME', 'ไม่ระบุคณะ'),
                 'year': data.get('STUDENTYEAR', 0),
-                'level': data.get('STUDENTLEVEL', 'ปริญญาตรี'),  # Default สำหรับนักศึกษา
+                'level': data.get('LEVELNAME', 'ปริญญาตรี'),  # Default สำหรับนักศึกษา
                 'department': data.get('DEPARTMENTNAME', ''),
             }
         elif result.get('statusCode') == 404:
